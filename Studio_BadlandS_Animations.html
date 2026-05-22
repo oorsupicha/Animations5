@@ -56,36 +56,6 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#1a1a1a;color:#e0e0e0;di
 <body>
 <nav id="sidebar">
   <h2>Studio BadlandS</h2>
-  <div class="nav-section">Summary</div>
-  <button class="nav-btn active" onclick="showPanel('__summary__')">&#x1F4CA; Summary</button>
-  <div class="nav-section">Weapon Types</div>
-  <div id="weapon-nav"></div>
-  <div class="nav-section">Other</div>
-  <button class="nav-btn" onclick="showPanel('__nw__')">&#x1F527; Non-Weapon</button>
-</nav>
-<div id="main">
-  <div id="topbar">
-    <h1 id="panel-title">Summary</h1>
-    <input id="filter-name" class="filter-input" placeholder="Search filename…" oninput="applyFilters()">
-    <input id="filter-using" class="filter-input" placeholder="Search Using…" oninput="applyFilters()">
-    <div class="btn-group" id="stance-btns">
-      <button class="filt-btn active" onclick="setFilter('stance','All',this)">All</button>
-      <button class="filt-btn" onclick="setFilter('stance','Stand',this)">Stand</button>
-      <button class="filt-btn" onclick="setFilter('stance','Crouch',this)">Crouch</button>
-      <button class="filt-btn" onclick="setFilter('stance','Prone',this)">Prone</button>
-    </div>
-    <div class="btn-group" id="persp-btns">
-      <button class="filt-btn active" onclick="setFilter('persp','All',this)">All</button>
-      <button class="filt-btn" onclick="setFilter('persp','1st Person',this)">1st</button>
-      <button class="filt-btn" onclick="setFilter('persp','3rd Person',this)">3rd</button>
-    </div>
-    <div class="btn-group" id="blend-btns" style="display:none">
-      <button class="filt-btn blend-btn active" onclick="setFilter('blending','All',this)">All</button>
-      <button class="filt-btn blend-btn" onclick="setFilter('blending','Full Body',this)">Full Body</button>
-      <button class="filt-btn blend-btn" onclick="setFilter('blending','Upper Body',this)">Upper Body</button>
-      <button class="filt-btn blend-btn" onclick="setFilter('blending','Additive Layer',this)">Additive</button>
-    </div>
-  </div>
   <div id="content"></div>
 </div>
 <script>
@@ -261,6 +231,13 @@ function blendColor(b){return b==='Full Body'?'#f0b060':b==='Upper Body'?'#50e0a
 function stanceColor(s){return s==='Stand'?'#7dde92':s==='Crouch'?'#f0c060':'#f08060';}
 function perspColor(p){return p==='1st Person'?'#60b0f0':'#f07060';}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// Enter key on search inputs: prevent default page navigation and run filter
+document.querySelectorAll('.filter-input').forEach(function(inp){
+  inp.addEventListener('keydown', function(e){
+    if(e.key==='Enter'){ e.preventDefault(); applyFilters(); }
+  });
+});
 
 showPanel('__summary__');
 
