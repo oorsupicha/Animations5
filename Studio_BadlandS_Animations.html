@@ -58,6 +58,36 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#1a1a1a;color:#e0e0e0;di
 <nav id="sidebar">
   <h2>Studio BadlandS</h2>
   <div id="version">v1.0</div>
+  <div class="nav-section">Summary</div>
+  <button class="nav-btn active" onclick="showPanel('__summary__')">&#x1F4CA; Summary</button>
+  <div class="nav-section">Weapon Types</div>
+  <div id="weapon-nav"></div>
+  <div class="nav-section">Other</div>
+  <button class="nav-btn" onclick="showPanel('__nw__')">&#x1F527; Non-Weapon</button>
+</nav>
+<div id="main">
+  <div id="topbar">
+    <h1 id="panel-title">Summary</h1>
+    <input id="filter-name" class="filter-input" placeholder="Search filename…" oninput="applyFilters()">
+    <input id="filter-using" class="filter-input" placeholder="Search Using…" oninput="applyFilters()">
+    <div class="btn-group" id="stance-btns">
+      <button class="filt-btn active" onclick="setFilter('stance','All',this)">All</button>
+      <button class="filt-btn" onclick="setFilter('stance','Stand',this)">Stand</button>
+      <button class="filt-btn" onclick="setFilter('stance','Crouch',this)">Crouch</button>
+      <button class="filt-btn" onclick="setFilter('stance','Prone',this)">Prone</button>
+    </div>
+    <div class="btn-group" id="persp-btns">
+      <button class="filt-btn active" onclick="setFilter('persp','All',this)">All</button>
+      <button class="filt-btn" onclick="setFilter('persp','1st Person',this)">1st</button>
+      <button class="filt-btn" onclick="setFilter('persp','3rd Person',this)">3rd</button>
+    </div>
+    <div class="btn-group" id="blend-btns" style="display:none">
+      <button class="filt-btn blend-btn active" onclick="setFilter('blending','All',this)">All</button>
+      <button class="filt-btn blend-btn" onclick="setFilter('blending','Full Body',this)">Full Body</button>
+      <button class="filt-btn blend-btn" onclick="setFilter('blending','Upper Body',this)">Upper Body</button>
+      <button class="filt-btn blend-btn" onclick="setFilter('blending','Additive Layer',this)">Additive</button>
+    </div>
+  </div>
   <div id="content"></div>
 </div>
 <script>
@@ -70,32 +100,35 @@ const ALL_USING_WEAPON=["Aiming Idle (1st Person)", "Aiming — Crouching", "Aim
 const ALL_USING_NW=["Activating Supply Drop Flare", "Activating Supply Drop Flare (1st Person)", "Aiming Idle (1st Person)", "Aiming — Crouching", "Aiming — Standing", "Dying — Generic Death", "Emote / Taunt", "Firing", "Holding Grenade — Crouching", "Idle", "Idle — 1st Person", "Idle — Crouching", "Idle — Melee Weapon Zoom Blend", "Idle — Prone", "Idle — Standing", "In Vehicle — Turning Left", "In Vehicle — Turning Right", "Interacting — Opening Door", "Jumping", "Jumping — From Run", "Jumping — From Sprint", "Melee Attack", "NPC — Devo Creature", "Parachuting", "Parachuting — Deployed", "Parachuting — Fast Descent", "Placing Barbed Wire — Standing", "Placing Barricade — Standing", "Placing Bedroll Barricade — Standing", "Placing C4 — Standing", "Pose — Cinematic / Screenshot", "Pose — Crouching Corner", "Pose — Crouching Look Back", "Pose — Crouching Reload", "Pose — Crouching Shoot", "Pose — Crouching Walk", "Pose — Crouching on Crate", "Pose — Running Reload", "Pose — Running Shoot", "Pose — Running on Stairs", "Pose — Running with Gun", "Pose — Standing Aim", "Reloading — Standing", "Running", "Running — Crouching", "Running — Directional (Stand)", "Running — Prone", "Running — Tier Weapon (Upper Body Blend)", "Running — Upper Body Weapon Blend", "Searching", "Sprinting — Carrying AT Mine", "Sprinting — Carrying C4 Charge", "Sprinting — Carrying Claymore", "Sprinting — Carrying Compass", "Sprinting — Standing", "Strafing — Crouching", "Swimming", "Swimming Fast (1st Person)", "Swimming Medium Speed (1st Person)", "Swimming Slow (1st Person)", "Swimming — Run", "Swimming — Treading Water (Idle)", "Throwing", "Transitioning: Stand → Prone", "Transitioning: Swimming Speed Change", "UI — Idle (Menu / Lobby)", "Using Ladder — Going Down", "Using Ladder — Going Up", "Walking", "Walking — Melee Weapon Zoom Blend"];
 const BLENDING_TYPES=["Full Body", "Upper Body", "Additive Layer"];
 
-let currentPanel='__summary__',filterStance='All',filterPersp='All',filterBlending='All';
+var currentPanel='__summary__',filterStance='All',filterPersp='All',filterBlending='All';
 
-const nav=document.getElementById('weapon-nav');
-WEAPON_ORDER.forEach(w=>{
-  const b=document.createElement('button');
-  b.className='nav-btn';b.textContent=w;b.onclick=()=>showPanel(w);nav.appendChild(b);
+var nav=document.getElementById('weapon-nav');
+WEAPON_ORDER.forEach(function(w){
+  var b=document.createElement('button');
+  b.className='nav-btn';b.textContent=w;
+  (function(wp){b.onclick=function(){showPanel(wp);};})(w);
+  nav.appendChild(b);
 });
 
 function showPanel(panel){
   currentPanel=panel;
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>{
-    if(panel==='__summary__'&&b.textContent==='📊 Summary') b.classList.add('active');
-    else if(panel==='__nw__'&&b.textContent==='🔧 Non-Weapon') b.classList.add('active');
-    else if(b.textContent===panel) b.classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.nav-btn').forEach(function(b){
+    if(panel==='__summary__'&&b.textContent==='📊 Summary')b.classList.add('active');
+    else if(panel==='__nw__'&&b.textContent==='🔧 Non-Weapon')b.classList.add('active');
+    else if(b.textContent===panel)b.classList.add('active');
   });
   document.getElementById('filter-name').value='';
   document.getElementById('filter-using').value='';
   filterStance='All';filterPersp='All';filterBlending='All';
-  document.querySelectorAll('#stance-btns .filt-btn,#persp-btns .filt-btn,#blend-btns .filt-btn')
-    .forEach(b=>{b.classList.toggle('active',b.textContent==='All');});
-  const titles={'__summary__':'Summary','__nw__':'Non-Weapon Animations'};
+  document.querySelectorAll('#stance-btns .filt-btn,#persp-btns .filt-btn,#blend-btns .filt-btn').forEach(function(b){
+    b.classList.toggle('active',b.textContent==='All');
+  });
+  var titles={'__summary__':'Summary','__nw__':'Non-Weapon Animations'};
   document.getElementById('panel-title').textContent=titles[panel]||(panel+' Animations');
-  const showF=panel!=='__summary__';
-  const isW=panel!=='__summary__'&&panel!=='__nw__';
-  ['filter-name','filter-using','stance-btns','persp-btns'].forEach(id=>{
+  var showF=panel!=='__summary__';
+  var isW=panel!=='__summary__'&&panel!=='__nw__';
+  ['filter-name','filter-using','stance-btns','persp-btns'].forEach(function(id){
     document.getElementById(id).style.display=showF?'':'none';
   });
   document.getElementById('blend-btns').style.display=isW?'':'none';
@@ -106,97 +139,104 @@ function setFilter(type,val,btn){
   if(type==='stance')filterStance=val;
   else if(type==='persp')filterPersp=val;
   else filterBlending=val;
-  const gid=type==='stance'?'stance-btns':type==='persp'?'persp-btns':'blend-btns';
-  document.querySelectorAll('#'+gid+' .filt-btn').forEach(b=>b.classList.remove('active'));
+  var gid=type==='stance'?'stance-btns':type==='persp'?'persp-btns':'blend-btns';
+  document.querySelectorAll('#'+gid+' .filt-btn').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
   if(currentPanel!=='__summary__')renderPanel();
 }
 
+function applyFilters(){
+  if(currentPanel!=='__summary__')renderPanel();
+}
+
 function getFiltered(data,isW){
-  const nq=document.getElementById('filter-name').value.toLowerCase();
-  const uq=document.getElementById('filter-using').value.toLowerCase();
-  return data.filter(e=>{
+  var nq=document.getElementById('filter-name').value.toLowerCase();
+  var uq=document.getElementById('filter-using').value.toLowerCase();
+  return data.filter(function(e){
     if(filterStance!=='All'&&e.stance!==filterStance)return false;
     if(filterPersp!=='All'&&e.persp!==filterPersp)return false;
     if(isW&&filterBlending!=='All'&&e.blending!==filterBlending)return false;
-    if(nq&&!e.file.toLowerCase().includes(nq))return false;
-    if(uq&&!e.using.toLowerCase().includes(uq))return false;
+    if(nq&&e.file.toLowerCase().indexOf(nq)<0)return false;
+    if(uq&&e.using.toLowerCase().indexOf(uq)<0)return false;
     return true;
   });
 }
 
 function renderPanel(){
-  const content=document.getElementById('content');
+  var content=document.getElementById('content');
   if(currentPanel==='__summary__'){renderSummary(content);return;}
-  const isW=currentPanel!=='__nw__';
-  const raw=isW?(WEAPON_DATA[currentPanel]||[]):NW_DATA;
+  var isW=currentPanel!=='__nw__';
+  var raw=isW?(WEAPON_DATA[currentPanel]||[]):NW_DATA;
   renderDetailView(content,getFiltered(raw,isW),isW);
 }
 
 function renderSummary(content){
-  let h='<div id="summary-view">';
+  var h='<div id="summary-view">';
   h+='<div class="stat-bar">';
-  let tot=0;WEAPON_ORDER.forEach(w=>{tot+=Object.values(SUMMARY_ROWS[w]).reduce((a,b)=>a+b,0);});
+  var tot=0;
+  WEAPON_ORDER.forEach(function(w){tot+=Object.values(SUMMARY_ROWS[w]).reduce(function(a,b){return a+b;},0);});
   h+='<div class="stat"><span>'+tot+'</span>Weapon Anims</div>';
   h+='<div class="stat"><span>'+NW_DATA.length+'</span>Non-Weapon Anims</div>';
   h+='<div class="stat"><span>'+(tot+NW_DATA.length)+'</span>Total Files</div>';
   h+='<div class="stat"><span>'+WEAPON_ORDER.length+'</span>Weapon Types</div>';
   h+='</div>';
 
-  h+='<h2>Weapon × Blending Layer</h2>';
+  h+='<h2>Weapon \xD7 Blending Layer</h2>';
   h+='<div style="overflow:auto;margin-bottom:24px"><table class="sum-table"><thead><tr>';
   h+='<th class="row-header">Weapon</th>';
-  BLENDING_TYPES.forEach(b=>{h+='<th style="padding:6px 18px">'+esc(b)+'</th>';});
+  BLENDING_TYPES.forEach(function(b){h+='<th style="padding:6px 18px">'+esc(b)+'</th>';});
   h+='<th style="padding:6px 10px;color:#555">Total</th></tr></thead><tbody>';
-  WEAPON_ORDER.forEach(w=>{
-    const row=SUMMARY_BLEND[w];
-    const rowTot=BLENDING_TYPES.reduce((s,b)=>s+(row[b]||0),0);
+  WEAPON_ORDER.forEach(function(w){
+    var row=SUMMARY_BLEND[w];
+    var rowTot=BLENDING_TYPES.reduce(function(s,b){return s+(row[b]||0);},0);
     h+='<tr><td class="row-header">'+esc(w)+'</td>';
-    BLENDING_TYPES.forEach(b=>{
-      const v=row[b]||0;
-      const cls=b==='Full Body'?'cell-fb':b==='Upper Body'?'cell-ub':'cell-al';
+    BLENDING_TYPES.forEach(function(b){
+      var v=row[b]||0;
+      var cls=b==='Full Body'?'cell-fb':b==='Upper Body'?'cell-ub':'cell-al';
       h+='<td class="'+(v>0?cls:'cell-0')+'">'+(v>0?v:'')+'</td>';
     });
     h+='<td style="color:#555;font-size:11px">'+rowTot+'</td></tr>';
   });
   h+='</tbody></table></div>';
 
-  h+='<h2>Weapon × Using Matrix</h2>';
+  h+='<h2>Weapon \xD7 Using Matrix</h2>';
   h+='<div style="overflow:auto;margin-bottom:24px"><table class="sum-table"><thead><tr>';
   h+='<th class="row-header">Weapon</th>';
-  ALL_USING_WEAPON.forEach(u=>{h+='<th class="col-header">'+esc(u)+'</th>';});
+  ALL_USING_WEAPON.forEach(function(u){h+='<th class="col-header">'+esc(u)+'</th>';});
   h+='</tr></thead><tbody>';
-  WEAPON_ORDER.forEach(w=>{
+  WEAPON_ORDER.forEach(function(w){
     h+='<tr><td class="row-header">'+esc(w)+'</td>';
-    ALL_USING_WEAPON.forEach(u=>{
-      const v=SUMMARY_ROWS[w][u]||0;
-      h+='<td class="'+(v>0?'cell-pos':'cell-0')+'">'+(v>0?v:'')+'</td>';
+    ALL_USING_WEAPON.forEach(function(u){
+      var v=SUMMARY_ROWS[w][u]||0;
+      h+='<td class="'+(v>0?"cell-pos":"cell-0")+'">'+(v>0?v:"")+'</td>';
     });
     h+='</tr>';
   });
   h+='</tbody></table></div>';
 
   h+='<h2>Non-Weapon Using Distribution</h2>';
-  const nc={};NW_DATA.forEach(e=>{nc[e.using]=(nc[e.using]||0)+1;});
-  const ns=Object.entries(nc).sort((a,b)=>b[1]-a[1]);
+  var nc={};
+  NW_DATA.forEach(function(e){nc[e.using]=(nc[e.using]||0)+1;});
+  var ns=Object.entries(nc).sort(function(a,b){return b[1]-a[1];});
   h+='<table class="sum-table"><thead><tr><th class="row-header">Using Situation</th><th>Count</th></tr></thead><tbody>';
-  ns.forEach(([u,c])=>{h+='<tr><td class="row-header">'+esc(u)+'</td><td class="cell-pos">'+c+'</td></tr>';});
+  ns.forEach(function(x){h+='<tr><td class="row-header">'+esc(x[0])+'</td><td class="cell-pos">'+x[1]+'</td></tr>';});
   h+='</tbody></table></div>';
   content.innerHTML=h;
 }
 
 function renderDetailView(content,data,isW){
-  const groups={};
-  data.forEach(e=>{if(!groups[e.using])groups[e.using]=[];groups[e.using].push(e);});
-  const gkeys=Object.keys(groups).sort();
-  const cols=isW?5:4;
+  var groups={};
+  data.forEach(function(e){if(!groups[e.using])groups[e.using]=[];groups[e.using].push(e);});
+  var gkeys=Object.keys(groups).sort();
+  var cols=isW?5:4;
 
-  let h='<div class="stat-bar">';
+  var h='<div class="stat-bar">';
   h+='<div class="stat"><span>'+data.length+'</span>Files shown</div>';
   h+='<div class="stat"><span>'+gkeys.length+'</span>Using categories</div>';
   if(isW){
-    const bc={};data.forEach(e=>{bc[e.blending]=(bc[e.blending]||0)+1;});
-    BLENDING_TYPES.forEach(b=>{
+    var bc={};
+    data.forEach(function(e){bc[e.blending]=(bc[e.blending]||0)+1;});
+    BLENDING_TYPES.forEach(function(b){
       if(bc[b])h+='<div class="stat"><span style="color:'+blendColor(b)+'">'+bc[b]+'</span>'+esc(b)+'</div>';
     });
   }
@@ -212,10 +252,10 @@ function renderDetailView(content,data,isW){
   if(isW)h+='<th>Blending</th>';
   h+='<th>Stance</th><th>Perspective</th></tr></thead><tbody>';
 
-  gkeys.forEach(using=>{
-    const rows=groups[using];
+  gkeys.forEach(function(using){
+    var rows=groups[using];
     h+='<tr><td colspan="'+cols+'" class="section-header">▸ '+esc(using)+'<span class="badge">'+rows.length+'</span></td></tr>';
-    rows.forEach(e=>{
+    rows.forEach(function(e){
       h+='<tr>';
       h+='<td style="font-family:monospace;color:#a0c4ff">'+esc(e.file)+'</td>';
       h+='<td style="color:#c8a0e8">'+esc(e.using)+'</td>';
