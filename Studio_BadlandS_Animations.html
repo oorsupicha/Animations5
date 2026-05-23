@@ -57,9 +57,11 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#1a1a1a;color:#e0e0e0;di
 <body>
 <nav id="sidebar">
   <h2>Studio BadlandS</h2>
-  <div id="version">v1.1</div>
+  <div id="version">v1.11</div>
   <div class="nav-section">Summary</div>
   <button class="nav-btn active" onclick="showPanel('__summary__')">&#x1F4CA; Summary</button>
+  <button class="nav-btn" onclick="showPanel('__wlist__')">&#x1F5E1; Weapon List</button>
+  <button class="nav-btn" onclick="showPanel('__animlist__')">&#x1F4CB; Animation List</button>
   <div class="nav-section">Weapon Types</div>
   <div id="weapon-nav"></div>
   <div class="nav-section">Other</div>
@@ -69,7 +71,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#1a1a1a;color:#e0e0e0;di
   <div id="topbar">
     <h1 id="panel-title">Summary</h1>
     <input id="filter-name" class="filter-input" placeholder="Search filename…" oninput="applyFilters()">
-    <input id="filter-using" class="filter-input" placeholder="Search Using…" oninput="applyFilters()">
+    <select id="filter-weapon" class="filter-input" onchange="applyFilters()" style="display:none;background:#222;color:#e0e0e0;border:1px solid #444;cursor:pointer"><option value="All">All Types</option></select>
     <div class="btn-group" id="stance-btns">
       <button class="filt-btn active" onclick="setFilter('stance','All',this)">All</button>
       <button class="filt-btn" onclick="setFilter('stance','Stand',this)">Stand</button>
@@ -100,15 +102,38 @@ const ALL_USING_WEAPON=["Aiming Idle (1st Person)", "Aiming — Crouching", "Aim
 const ALL_USING_NW=["Activating Supply Drop Flare", "Activating Supply Drop Flare (1st Person)", "Aiming Idle (1st Person)", "Aiming — Crouching", "Aiming — Standing", "Dying — Generic Death", "Emote / Taunt", "Firing", "Holding Grenade — Crouching", "Idle", "Idle — 1st Person", "Idle — Crouching", "Idle — Melee Weapon Zoom Blend", "Idle — Prone", "Idle — Standing", "In Vehicle — Turning Left", "In Vehicle — Turning Right", "Interacting — Opening Door", "Jumping", "Jumping — From Run", "Jumping — From Sprint", "Melee Attack", "NPC — Devo Creature", "Parachuting", "Parachuting — Deployed", "Parachuting — Fast Descent", "Placing Barbed Wire — Standing", "Placing Barricade — Standing", "Placing Bedroll Barricade — Standing", "Placing C4 — Standing", "Pose — Cinematic / Screenshot", "Pose — Crouching Corner", "Pose — Crouching Look Back", "Pose — Crouching Reload", "Pose — Crouching Shoot", "Pose — Crouching Walk", "Pose — Crouching on Crate", "Pose — Running Reload", "Pose — Running Shoot", "Pose — Running on Stairs", "Pose — Running with Gun", "Pose — Standing Aim", "Reloading — Standing", "Running", "Running — Crouching", "Running — Directional (Stand)", "Running — Prone", "Running — Tier Weapon (Upper Body Blend)", "Running — Upper Body Weapon Blend", "Searching", "Sprinting — Carrying AT Mine", "Sprinting — Carrying C4 Charge", "Sprinting — Carrying Claymore", "Sprinting — Carrying Compass", "Sprinting — Standing", "Strafing — Crouching", "Swimming", "Swimming Fast (1st Person)", "Swimming Medium Speed (1st Person)", "Swimming Slow (1st Person)", "Swimming — Run", "Swimming — Treading Water (Idle)", "Throwing", "Transitioning: Stand → Prone", "Transitioning: Swimming Speed Change", "UI — Idle (Menu / Lobby)", "Using Ladder — Going Down", "Using Ladder — Going Up", "Walking", "Walking — Melee Weapon Zoom Blend"];
 const BLENDING_TYPES=["Full Body", "Upper Body", "Additive Layer"];
 
+var WEAPON_LIST_DATA=[["SMG_HSE", "SMG", "HSE — Custom/in-game SMG", "Custom"], ["SMG_Bizon", "SMG", "PP-19 Bizon (Russian SMG)", "Real"], ["SMG_EVO", "SMG", "CZ Scorpion EVO", "Real"], ["SMG_Kris / SMG_Kriss", "SMG", "KRISS Vector", "Real"], ["SMG_ChangFeng", "SMG", "Chang Feng CF-05 (Chinese SMG)", "Real"], ["SMG_MicroUzi", "SMG", "Micro Uzi", "Real"], ["SMG_HB_02", "SMG", "Homebrew SMG #2 (improvised)", "Homebrew"], ["SNP_ARS", "SNP", "ARS — Custom/in-game sniper", "Custom"], ["SNP_Archangel / SNP_Mosin_Archangel", "SNP", "Mosin-Nagant with Archangel stock", "Real"], ["SNP_Bullistic", "SNP", "Bullistic — Custom/in-game sniper", "Custom"], ["SNP_LM7", "SNP", "LM7 — Custom/in-game sniper", "Custom"], ["SNP_R13", "SNP", "R13 — Custom/in-game sniper", "Custom"], ["HB_SNP", "SNP", "Homebrew Sniper Rifle (improvised)", "Homebrew"], ["ASR_AK12", "ASR", "AK-12 (Russian assault rifle)", "Real"], ["ASR_AR_01", "ASR", "Generic AR-type rifle", "Custom"], ["ASR_ASh12", "ASR", "ASh-12.7 (Russian heavy assault rifle)", "Real"], ["ASR_HB / ASR_HB_01", "ASR", "Homebrew Assault Rifle (improvised)", "Homebrew"], ["ASR_MXZ5", "ASR", "MXZ5 — Custom/in-game AR", "Custom"], ["ASR_SHRAM", "ASR", "SHRAM — Custom/in-game AR", "Custom"], ["ASR_Springfield_M1903", "ASR", "Springfield M1903 (bolt-action rifle)", "Real"], ["ASR_Tar30", "ASR", "Tavor TAR-21 / Tar-30 (Israeli bullpup)", "Real"], ["ASR_Win73", "ASR", "Winchester Model 1873 (lever-action)", "Real"], ["ASR_M4", "ASR", "M4 Carbine", "Real"], ["ASR_THOR / ASR_THOR5", "ASR", "THOR — Custom/in-game AR", "Custom"], ["ASR_WDX", "ASR", "WDX — Custom/in-game AR", "Custom"], ["SHG_Browning_Auto5", "SHG", "Browning Auto-5 shotgun", "Real"], ["SHG_Colt_1878", "SHG", "Colt Model 1878 shotgun", "Real"], ["SHG_M1216", "SHG", "M1216 rotating-magazine shotgun", "Real"], ["SHG_Saiga", "SHG", "Saiga-12 semi-auto shotgun", "Real"], ["SHG_SP12", "SHG", "SPAS-12 shotgun", "Real"], ["SHG_Win_M1897", "SHG", "Winchester Model 1897 shotgun", "Real"], ["SHG_SawedOff", "SHG", "Sawed-off double-barrel shotgun", "Real"], ["HG_9mm", "HG", "9mm Pistol (generic)", "Custom"], ["HG_45c", "HG", ".45 ACP Pistol", "Custom"], ["HG_AP50", "HG", "AP50 — Custom/in-game pistol", "Custom"], ["HG_FN_1903", "HG", "FN Model 1903 pistol", "Real"], ["HG_Kuger", "HG", "Luger P08 pistol", "Real"], ["HG_MicroUzi", "HG", "Micro Uzi (pistol configuration)", "Real"], ["HG_RV50c", "HG", "Revolver .50 caliber", "Custom"], ["HB_RV50c", "HG", "Homebrew Revolver .50 caliber", "Homebrew"], ["HG_Revo", "HG", "Revolver (generic)", "Custom"], ["HG_SWM3", "HG", "SWM3 — Custom/in-game pistol", "Custom"], ["HG_Auto", "HG", "Full-auto pistol", "Custom"], ["LMG_HMG / LMG_HMG_01", "LMG", "Heavy Machine Gun", "Custom"], ["LMG_NG100", "LMG", "NG100 — Custom/in-game LMG", "Custom"], ["MEL_BaseballBat", "MEL", "Baseball Bat", "Real"], ["MEL_FireAxe", "MEL", "Fire Axe", "Real"], ["MEL_Flashlight", "MEL", "Flashlight (blunt)", "Real"], ["MEL_Hands", "MEL", "Bare Hands / Fists", "Real"], ["MEL_Knife", "MEL", "Knife", "Real"], ["MEL_TacticalKnife", "MEL", "Tactical Knife", "Real"], ["MEL_Mace", "MEL", "Mace", "Real"], ["MEL_Machete_01", "MEL", "Machete", "Real"], ["MEL_PickAxe", "MEL", "Pickaxe", "Real"], ["MEL_Torch", "MEL", "Torch", "Real"], ["MEL_Wrench", "MEL", "Wrench", "Real"], ["SUP_RPG / SUP_RPG7", "SUP", "RPG-7 (Rocket-Propelled Grenade launcher)", "Real"], ["SUP_AT4", "SUP", "AT4 (disposable anti-tank rocket launcher)", "Real"], ["SUP_GLX", "SUP", "GLX — Grenade Launcher (in-game design)", "Custom"], ["SUP_Eliminator", "SUP", "Eliminator — Custom support weapon", "Custom"], ["EXP_Grenade_HE", "EXP", "HE Grenade — High Explosive fragmentation grenade", "Real"], ["EXP_M26", "EXP", "M26 Grenade — US military fragmentation grenade", "Real"], ["EXP_C4 / EXP_C4_Charge", "EXP", "C4 Plastic Explosive — placeable det charge", "Real"], ["EXP_Claymore", "EXP", "M18A1 Claymore — directional anti-personnel mine", "Real"], ["EXP_AP_Mine", "EXP", "AP Mine — Anti-Personnel landmine", "Real"], ["EXP_AT_Mine", "EXP", "AT Mine — Anti-Tank landmine", "Real"], ["EXP_Mine / EXP_Mine2", "EXP", "Generic landmine variants", "Custom"], ["EXP_Slam", "EXP", "SLAM — Selectable Lightweight Attack Munition", "Real"], ["EXP_FlashEMP", "EXP", "Flash/EMP Grenade", "Real"], ["EXP_SmokeFrag", "EXP", "Smoke/Frag combination grenade", "Real"], ["EXP_Distraction", "EXP", "Distraction device — noise/decoy throwable", "Custom"], ["EXP_Flare", "EXP", "Flare — signaling/illumination device", "Real"], ["HB_ASR01 / HB_ASR02", "HB", "Homebrew Assault Rifle (variants 1 & 2)", "Homebrew"], ["HB_AR_02", "HB", "Homebrew AR variant #2", "Homebrew"], ["ASR_HB / ASR_HB_01", "HB", "Homebrew AR (alternate naming)", "Homebrew"], ["HB_SMG02 / SMG_HB_02", "HB", "Homebrew Submachine Gun", "Homebrew"], ["HB_SNP / HB_SNP01", "HB", "Homebrew Sniper Rifle", "Homebrew"], ["HB_Shotgun", "HB", "Homebrew Shotgun", "Homebrew"], ["HB_Revo / HB_RV50c", "HB", "Homebrew Revolver / .50 cal Revolver", "Homebrew"], ["HB_Pistol", "HB", "Homebrew Pistol", "Homebrew"], ["Binoculars", "Other", "Binoculars — Observation / zoom optics", "Custom"], ["Medkit", "Other", "Medkit — Medical / healing item", "Custom"], ["Deployable", "Other", "Deployable — Placeable equipment / tool", "Custom"]];
+var CAT_PREFIXES=[["SMG", "Submachine Gun", "Compact automatic firearms chambered in pistol calibers"], ["SNP", "Sniper Rifle", "Long-range precision rifles"], ["ASR", "Assault Rifle", "Full-size automatic/semi-auto rifles"], ["SHG", "Shotgun", "Smooth-bore firearms firing shells"], ["HG", "Handgun", "Pistols and revolvers"], ["LMG", "Light Machine Gun", "Belt- or drum-fed automatic support weapons"], ["HMG", "Heavy Machine Gun", "Large-caliber automatic crew-served weapons"], ["MEL", "Melee", "Close-combat weapons and bare hands"], ["HB", "Homebrew", "Player-crafted / improvised weapons (prefix added to any category)"], ["SUP", "Support Weapon", "Heavy/special weapons — rocket launchers, grenade launchers, anti-tank"], ["EXP", "Explosive", "Throwable and placeable explosives — grenades, mines, C4, flares"], ["Other", "Other Equipment", "Non-weapon items — optics, medical, and deployable tools"]];
 var currentPanel='__summary__',filterStance='All',filterPersp='All',filterBlending='All';
 
+var OTHER_TYPES=['Binoculars','Medkit','Deployable'];
 var nav=document.getElementById('weapon-nav');
+var otherBtnAdded=false;
 WEAPON_ORDER.forEach(function(w){
+  if(OTHER_TYPES.indexOf(w)>=0){
+    if(!otherBtnAdded){
+      var bo=document.createElement('button');
+      bo.className='nav-btn';bo.textContent='Other';
+      bo.onclick=function(){showPanel('__other__');};
+      nav.appendChild(bo);otherBtnAdded=true;
+    }
+    return;
+  }
   var b=document.createElement('button');
   b.className='nav-btn';b.textContent=w;
   (function(wp){b.onclick=function(){showPanel(wp);};})(w);
   nav.appendChild(b);
 });
+var wsel=document.getElementById('filter-weapon');
+var otherOptAdded=false;
+WEAPON_ORDER.forEach(function(w){
+  if(OTHER_TYPES.indexOf(w)>=0){
+    if(!otherOptAdded){var oo=document.createElement('option');oo.value='Other';oo.textContent='Other';wsel.appendChild(oo);otherOptAdded=true;}
+    return;
+  }
+  var opt=document.createElement('option');opt.value=w;opt.textContent=w;wsel.appendChild(opt);
+});
+(function(){var opt=document.createElement('option');opt.value='Non-Weapon';opt.textContent='Non-Weapon';wsel.appendChild(opt);})();
 
 function showPanel(panel){
   currentPanel=panel;
@@ -116,22 +141,28 @@ function showPanel(panel){
   document.querySelectorAll('.nav-btn').forEach(function(b){
     if(panel==='__summary__'&&b.textContent==='📊 Summary')b.classList.add('active');
     else if(panel==='__nw__'&&b.textContent==='🔧 Non-Weapon')b.classList.add('active');
+    else if(panel==='__wlist__'&&b.textContent.indexOf('Weapon List')>=0)b.classList.add('active');
+    else if(panel==='__animlist__'&&b.textContent.indexOf('Animation List')>=0)b.classList.add('active');
+    else if(panel==='__other__'&&b.textContent==='Other')b.classList.add('active');
     else if(b.textContent===panel)b.classList.add('active');
   });
   document.getElementById('filter-name').value='';
-  document.getElementById('filter-using').value='';
+  document.getElementById('filter-weapon').value='All';
   filterStance='All';filterPersp='All';filterBlending='All';
   document.querySelectorAll('#stance-btns .filt-btn,#persp-btns .filt-btn,#blend-btns .filt-btn').forEach(function(b){
     b.classList.toggle('active',b.textContent==='All');
   });
-  var titles={'__summary__':'Summary','__nw__':'Non-Weapon Animations'};
+  var titles={'__summary__':'Summary','__nw__':'Non-Weapon Animations','__wlist__':'Weapon List','__animlist__':'Animation List','__other__':'Other Animations'};
   document.getElementById('panel-title').textContent=titles[panel]||(panel+' Animations');
-  var showF=panel!=='__summary__';
-  var isW=panel!=='__summary__'&&panel!=='__nw__';
-  ['filter-name','filter-using','stance-btns','persp-btns'].forEach(function(id){
-    document.getElementById(id).style.display=showF?'':'none';
+  var showSearch=panel!=='__summary__'&&panel!=='__wlist__';
+  var showStance=showSearch;
+  var isW=panel!=='__summary__'&&panel!=='__nw__'&&panel!=='__wlist__'&&panel!=='__animlist__';
+  document.getElementById('filter-name').style.display=showSearch?'':'none';
+  ['stance-btns','persp-btns'].forEach(function(id){
+    document.getElementById(id).style.display=showStance?'':'none';
   });
-  document.getElementById('blend-btns').style.display=isW?'':'none';
+  document.getElementById('blend-btns').style.display=(isW||panel==='__animlist__')?'':'none';
+  document.getElementById('filter-weapon').style.display=panel==='__animlist__'?'':'none';
   renderPanel();
 }
 
@@ -151,20 +182,46 @@ function applyFilters(){
 
 function getFiltered(data,isW){
   var nq=document.getElementById('filter-name').value.toLowerCase();
-  var uq=document.getElementById('filter-using').value.toLowerCase();
   return data.filter(function(e){
     if(filterStance!=='All'&&e.stance!==filterStance)return false;
     if(filterPersp!=='All'&&e.persp!==filterPersp)return false;
     if(isW&&filterBlending!=='All'&&e.blending!==filterBlending)return false;
     if(nq&&e.file.toLowerCase().indexOf(nq)<0)return false;
-    if(uq&&e.using.toLowerCase().indexOf(uq)<0)return false;
     return true;
   });
 }
 
+var _codenamePatterns=null;
+function getCodename(filename){
+  if(!_codenamePatterns){
+    _codenamePatterns=[];
+    WEAPON_LIST_DATA.forEach(function(r){
+      var parts=r[0].split(' / ');
+      parts.forEach(function(code){
+        code=code.trim();
+        var esc2=code.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+        var pat=new RegExp('(?:^|_)'+esc2+'(?:_|\\.|$)','i');
+        _codenamePatterns.push({pat:pat,display:r[0],len:code.length});
+      });
+    });
+    _codenamePatterns.sort(function(a,b){return b.len-a.len;});
+  }
+  for(var i=0;i<_codenamePatterns.length;i++){
+    if(_codenamePatterns[i].pat.test(filename))return _codenamePatterns[i].display;
+  }
+  return '—';
+}
+
+
 function renderPanel(){
   var content=document.getElementById('content');
   if(currentPanel==='__summary__'){renderSummary(content);return;}
+  if(currentPanel==='__wlist__'){renderWeaponList(content);return;}
+  if(currentPanel==='__animlist__'){renderAnimList(content);return;}
+  if(currentPanel==='__other__'){
+    var raw=(WEAPON_DATA['Binoculars']||[]).concat(WEAPON_DATA['Medkit']||[]).concat(WEAPON_DATA['Deployable']||[]);
+    renderDetailView(content,getFiltered(raw,true),true);return;
+  }
   var isW=currentPanel!=='__nw__';
   var raw=isW?(WEAPON_DATA[currentPanel]||[]):NW_DATA;
   renderDetailView(content,getFiltered(raw,isW),isW);
@@ -224,11 +281,119 @@ function renderSummary(content){
   content.innerHTML=h;
 }
 
+function renderWeaponList(content){
+  var h='<div style="padding:20px;max-width:960px">';
+
+  h+='<h2 style="margin-bottom:12px;color:#e0e0e0">Category Prefixes</h2>';
+  h+='<table class="sum-table" style="margin-bottom:28px"><thead><tr>';
+  h+='<th class="row-header">Prefix</th><th>Full Name</th><th>Description</th>';
+  h+='</tr></thead><tbody>';
+  CAT_PREFIXES.forEach(function(row){
+    h+='<tr>';
+    h+='<td class="row-header" style="font-family:monospace;color:#a0c4ff;font-weight:700">'+esc(row[0])+'</td>';
+    h+='<td style="color:#e0e0e0;font-weight:600">'+esc(row[1])+'</td>';
+    h+='<td style="color:#888">'+esc(row[2])+'</td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+
+  h+='<h2 style="margin-bottom:10px;color:#e0e0e0">Full Weapon List</h2>';
+  h+='<div style="display:flex;gap:18px;margin-bottom:12px;font-size:12px;align-items:center">';
+  h+='<span style="color:#7dde92">&#11044; Real</span>';
+  h+='<span style="color:#e060c0">&#11044; Custom</span>';
+  h+='<span style="color:#f0b060">&#11044; Homebrew</span>';
+  h+='<span style="color:#666;font-size:11px">'+WEAPON_LIST_DATA.length+' weapons total</span>';
+  h+='</div>';
+
+  var groups={};var catOrder=[];
+  WEAPON_LIST_DATA.forEach(function(row){
+    var cat=row[1];
+    if(!groups[cat]){groups[cat]=[];catOrder.push(cat);}
+    groups[cat].push(row);
+  });
+  var seen={};
+  catOrder=catOrder.filter(function(c){if(seen[c])return false;seen[c]=true;return true;});
+
+  h+='<table class="anim-table"><thead><tr>';
+  h+='<th>Codename</th><th>Weapon / Description</th><th>Type</th>';
+  h+='</tr></thead><tbody>';
+  catOrder.forEach(function(cat){
+    var rows=groups[cat];
+    h+='<tr><td colspan="3" class="section-header">&#9656; '+esc(cat)+'<span class="badge">'+rows.length+'</span></td></tr>';
+    rows.forEach(function(row){
+      var tc=row[3]==='Real'?'#7dde92':row[3]==='Homebrew'?'#f0b060':'#e060c0';
+      h+='<tr>';
+      h+='<td style="font-family:monospace;color:#a0c4ff">'+esc(row[0])+'</td>';
+      h+='<td style="color:#c8a0e8">'+esc(row[2])+'</td>';
+      h+='<td style="color:'+tc+';font-weight:600">'+esc(row[3])+'</td>';
+      h+='</tr>';
+    });
+  });
+  h+='</tbody></table></div>';
+  content.innerHTML=h;
+}
+
+function renderAnimList(content){
+  var wf=document.getElementById('filter-weapon').value;
+  var nq=document.getElementById('filter-name').value.toLowerCase();
+
+  var all=[];
+  WEAPON_ORDER.forEach(function(w){
+    (WEAPON_DATA[w]||[]).forEach(function(e){
+      all.push({file:e.file,wtype:w,codename:getCodename(e.file),stance:e.stance,persp:e.persp,blending:e.blending});
+    });
+  });
+  NW_DATA.forEach(function(e){
+    all.push({file:e.file,wtype:'Non-Weapon',codename:'—',stance:e.stance,persp:e.persp,blending:'—'});
+  });
+
+  var filtered=all.filter(function(e){
+    if(wf!=='All'){
+      if(wf==='Other'){if(OTHER_TYPES.indexOf(e.wtype)<0)return false;}
+      else if(e.wtype!==wf)return false;
+    }
+    if(nq&&e.file.toLowerCase().indexOf(nq)<0)return false;
+    if(filterStance!=='All'&&e.stance!==filterStance)return false;
+    if(filterPersp!=='All'&&e.persp!==filterPersp)return false;
+    if(filterBlending!=='All'&&e.blending!==filterBlending)return false;
+    return true;
+  });
+
+  var h='<div class="stat-bar">';
+  h+='<div class="stat"><span>'+filtered.length+'</span>Shown</div>';
+  h+='<div class="stat"><span>'+all.length+'</span>Total</div>';
+  if(wf!=='All')h+='<div class="stat"><span style="color:#4da6ff">'+esc(wf)+'</span>Filter</div>';
+  h+='</div>';
+
+  if(!filtered.length){
+    h+='<p style="color:#555;padding:20px">No animations match.</p>';
+    content.innerHTML=h;return;
+  }
+
+  h+='<table class="anim-table"><thead><tr>';
+  h+='<th>File Name</th><th>Codename</th><th>Weapon Type</th><th>Stance</th><th>Perspective</th><th>Blending</th>';
+  h+='</tr></thead><tbody>';
+
+  filtered.forEach(function(e){
+    h+='<tr>';
+    h+='<td style="font-family:monospace;color:#a0c4ff">'+esc(e.file)+'</td>';
+    h+='<td style="font-family:monospace;color:#f0c060;font-size:11px">'+esc(e.codename)+'</td>';
+    h+='<td style="color:#e0e0e0">'+esc(e.wtype)+'</td>';
+    h+='<td><span style="color:'+stanceColor(e.stance)+'">'+esc(e.stance)+'</span></td>';
+    h+='<td><span style="color:'+perspColor(e.persp)+'">'+esc(e.persp)+'</span></td>';
+    if(e.blending==='—')h+='<td style="color:#444">—</td>';
+    else h+='<td><span style="color:'+blendColor(e.blending)+'">'+esc(e.blending)+'</span></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  content.innerHTML=h;
+}
+
 function renderDetailView(content,data,isW){
   var groups={};
   data.forEach(function(e){if(!groups[e.using])groups[e.using]=[];groups[e.using].push(e);});
   var gkeys=Object.keys(groups).sort();
-  var cols=isW?5:4;
+  var cols=isW?6:4;
 
   var h='<div class="stat-bar">';
   h+='<div class="stat"><span>'+data.length+'</span>Files shown</div>';
@@ -248,7 +413,9 @@ function renderDetailView(content,data,isW){
   }
 
   h+='<table class="anim-table"><thead><tr>';
-  h+='<th>File Name</th><th>Using</th>';
+  h+='<th>File Name</th>';
+  if(isW)h+='<th>Codename</th>';
+  h+='<th>Using</th>';
   if(isW)h+='<th>Blending</th>';
   h+='<th>Stance</th><th>Perspective</th></tr></thead><tbody>';
 
@@ -258,6 +425,7 @@ function renderDetailView(content,data,isW){
     rows.forEach(function(e){
       h+='<tr>';
       h+='<td style="font-family:monospace;color:#a0c4ff">'+esc(e.file)+'</td>';
+      if(isW)h+='<td style="font-family:monospace;color:#f0c060;font-size:11px">'+esc(getCodename(e.file))+'</td>';
       h+='<td style="color:#c8a0e8">'+esc(e.using)+'</td>';
       if(isW)h+='<td><span style="font-weight:600;color:'+blendColor(e.blending)+'">'+esc(e.blending)+'</span></td>';
       h+='<td><span style="color:'+stanceColor(e.stance)+'">'+esc(e.stance)+'</span></td>';
