@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gacha Drop Rate Simulator v1.2</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --surface2: #16213e;
+    --border: #2a2a4a;
+    --accent: #7c3aed;
+    --accent2: #a78bfa;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --ssrColor: #f59e0b;
+    --srColor: #8b5cf6;
+    --rColor: #3b82f6;
+    --nColor: #6b7280;
+    --danger: #ef4444;
+    --success: #10b981;
+    --card-bg: #1e1e3a;
+  }
+
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; }
+
+  h1 {
+    text-align: center; font-size: 2rem; font-weight: 800;
+    background: linear-gradient(135deg, #f59e0b, #a78bfa, #3b82f6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    margin-bottom: 4px; letter-spacing: -0.5px;
+  }
+
+  .version-badge {
+    display: inline-block; background: rgba(124,58,237,0.25); border: 1px solid rgba(167,139,250,0.4);
+    color: var(--accent2); font-size: 0.7rem; font-weight: 700; letter-spacing: 1px;
+    padding: 2px 8px; border-radius: 20px; vertical-align: middle; margin-left: 6px; position: relative; top: -4px;
+  }
+
+  .subtitle { text-align: center; color: var(--muted); font-size: 0.875rem; margin-bottom: 32px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+  .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .section-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+  .section h2 { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+
+  /* Rate grid */
+  .rate-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .rate-card { background: var(--surface2); border: 2px solid var(--border); border-radius: 12px; padding: 16px; }
+  .rate-card.ssr { border-color: rgba(245,158,11,0.4); }
+  .rate-card.sr  { border-color: rgba(139,92,246,0.4); }
+  .rate-card.r   { border-color: rgba(59,130,246,0.4); }
+  .rate-card.n   { border-color: rgba(107,114,128,0.4); }
+  .rate-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .rate-card.ssr .rate-label { color: var(--ssrColor); }
+  .rate-card.sr  .rate-label { color: var(--srColor); }
+  .rate-card.r   .rate-label { color: var(--rColor); }
+  .rate-card.n   .rate-label { color: var(--nColor); }
+  .rate-input-wrap { display: flex; align-items: center; gap: 6px; }
+
+  .total-display { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 10px; background: var(--surface2); border: 1px solid var(--border); font-size: 0.9rem; }
+  .total-display .total-val { font-size: 1.25rem; font-weight: 700; }
+  .total-ok  { color: var(--success); }
+  .total-err { color: var(--danger); }
+
+  /* Inputs */
+  input[type="number"], input[type="text"], select {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; width: 100%;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input[type="number"]:focus, input[type="text"]:focus, select:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124,58,237,0.2);
+  }
+  select option { background: var(--surface2); }
+
+  /* Buttons */
+  button { cursor: pointer; font-size: 0.875rem; font-weight: 600; border: none; border-radius: 8px; padding: 9px 18px; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #6d28d9; transform: translateY(-1px); }
+  .btn-primary:disabled { background: #4a4a6a; color: var(--muted); cursor: not-allowed; transform: none; }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); }
+  .btn-danger { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+  .btn-danger:hover { background: rgba(239,68,68,0.25); }
+  .btn-success { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+  .btn-success:hover { background: rgba(16,185,129,0.25); }
+  .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+
+  /* Item pool */
+  .item-add-row { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-bottom: 16px; align-items: end; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  thead tr { background: var(--surface2); }
+  th { padding: 10px 14px; text-align: left; font-weight: 600; color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 10px 14px; border-bottom: 1px solid rgba(42,42,74,0.5); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: rgba(124,58,237,0.05); }
+
+  .rarity-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px; }
+  .badge-SSR { background: rgba(245,158,11,0.2); color: var(--ssrColor); border: 1px solid rgba(245,158,11,0.4); }
+  .badge-SR  { background: rgba(139,92,246,0.2);  color: var(--srColor);  border: 1px solid rgba(139,92,246,0.4); }
+  .badge-R   { background: rgba(59,130,246,0.2);   color: var(--rColor);   border: 1px solid rgba(59,130,246,0.4); }
+  .badge-N   { background: rgba(107,114,128,0.2);  color: var(--nColor);   border: 1px solid rgba(107,114,128,0.4); }
+
+  /* Sim inputs */
+  .sim-input-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 16px; }
+  .field-group { display: flex; flex-direction: column; gap: 6px; }
+  .field-label { font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Summary cards */
+  .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+  .card-val { font-size: 1.8rem; font-weight: 800; color: var(--accent2); line-height: 1.2; }
+  .card-label { font-size: 0.75rem; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+  /* Alerts */
+  .alert { padding: 10px 16px; border-radius: 8px; font-size: 0.875rem; margin-bottom: 12px; }
+  .alert-error   { background: rgba(239,68,68,0.12);  border: 1px solid rgba(239,68,68,0.3);  color: #fca5a5; }
+  .alert-info    { background: rgba(124,58,237,0.12); border: 1px solid rgba(124,58,237,0.3); color: var(--accent2); }
+  .alert-success { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); color: #6ee7b7; }
+
+  /* Toggle */
+  .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; inset: 0; background: var(--border); border-radius: 24px; cursor: pointer; transition: 0.3s; }
+  .slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+  input:checked + .slider { background: var(--accent); }
+  input:checked + .slider::before { transform: translateX(20px); }
+  .toggle-label { font-size: 0.9rem; font-weight: 500; }
+
+  /* Pity inputs */
+  .pity-inputs { display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px; padding: 12px; background: rgba(245,158,11,0.06); border-radius: 10px; border: 1px solid rgba(245,158,11,0.25); }
+
+  /* Free roll inputs */
+  .free-roll-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; padding: 12px; background: var(--surface2); border-radius: 10px; border: 1px solid var(--border); }
+
+  /* ══ LIVE PREVIEW PANEL (MC) ══ */
+  .mc-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    background: rgba(16,185,129,0.06);
+    border: 1px solid rgba(16,185,129,0.25);
+    border-radius: 12px;
+  }
+
+  .mc-preview-item { text-align: center; }
+  .mc-preview-val { font-size: 1.3rem; font-weight: 800; color: var(--success); line-height: 1.2; }
+  .mc-preview-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+  .mc-preview-auto .mc-preview-val { color: var(--accent2); }
+
+  /* Monte Carlo results */
+  .mc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .mc-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; text-align: center; }
+  .mc-val { font-size: 1.5rem; font-weight: 800; color: var(--ssrColor); line-height: 1.2; }
+  .mc-label { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  .insight-box { background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(59,130,246,0.1)); border: 1px solid rgba(124,58,237,0.4); border-radius: 10px; padding: 14px 18px; font-size: 0.9rem; line-height: 1.6; color: var(--accent2); margin-top: 16px; }
+  .insight-box strong { color: #fff; }
+
+  /* ══ SSR DISTRIBUTION HISTOGRAM ══ */
+  .hist-section { margin-top: 20px; }
+  .hist-title { font-size: 0.9rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; font-weight: 600; }
+
+  .hist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .hist-label { width: 50px; font-size: 0.8rem; font-weight: 700; color: var(--ssrColor); text-align: right; flex-shrink: 0; }
+  .hist-track { flex: 1; background: var(--surface2); border-radius: 6px; height: 26px; overflow: hidden; border: 1px solid var(--border); }
+  .hist-fill {
+    height: 100%; border-radius: 6px;
+    background: linear-gradient(90deg, #92400e, #f59e0b);
+    display: flex; align-items: center; padding-left: 8px;
+    font-size: 0.72rem; font-weight: 700; color: #fff;
+    min-width: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    white-space: nowrap; overflow: hidden;
+  }
+  .hist-meta { width: 90px; font-size: 0.75rem; color: var(--muted); flex-shrink: 0; text-align: left; }
+
+  /* Action row */
+  .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+  /* Item result */
+  .item-result-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .item-chip { padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; background: var(--surface2); border: 1px solid var(--border); }
+
+  .empty-state { text-align: center; color: var(--muted); padding: 24px; font-size: 0.875rem; }
+
+  /* ══ BAR CHART ══ */
+  .bar-chart { margin-top: 16px; margin-bottom: 4px; }
+  .bar-chart-title { font-size: 0.9rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; font-weight: 600; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-rarity-label { width: 38px; font-size: 0.75rem; font-weight: 700; text-align: right; flex-shrink: 0; }
+  .bar-track { flex: 1; background: var(--surface2); border-radius: 6px; height: 28px; overflow: hidden; border: 1px solid var(--border); }
+  .bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 8px; font-size: 0.75rem; font-weight: 700; color: #fff; min-width: 2px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); white-space: nowrap; overflow: hidden; }
+  .bar-fill.bar-SSR { background: linear-gradient(90deg, #b45309, #f59e0b); }
+  .bar-fill.bar-SR  { background: linear-gradient(90deg, #5b21b6, #8b5cf6); }
+  .bar-fill.bar-R   { background: linear-gradient(90deg, #1d4ed8, #3b82f6); }
+  .bar-fill.bar-N   { background: linear-gradient(90deg, #374151, #6b7280); }
+  .bar-meta { width: 100px; font-size: 0.78rem; color: var(--muted); flex-shrink: 0; }
+
+  /* ══ ROLL LOG ══ */
+  .roll-log-toggle { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; margin-bottom: 0; }
+  .roll-log-wrap {
+    max-height: 320px;
+    overflow-y: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-top: 10px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .roll-log-wrap::-webkit-scrollbar { width: 6px; }
+  .roll-log-wrap::-webkit-scrollbar-track { background: transparent; }
+  .roll-log-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ══ HISTORY ══ */
+  .history-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .history-empty { text-align: center; color: var(--muted); padding: 20px; font-size: 0.875rem; }
+
+  /* Edit modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 90%; max-width: 400px; }
+  .modal h3 { margin-bottom: 16px; font-size: 1rem; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: flex-end; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  @media (max-width: 600px) {
+    body { padding: 12px; }
+    .item-add-row { grid-template-columns: 1fr 1fr; }
+    .item-add-row input { grid-column: span 2; }
+    .free-roll-inputs { grid-template-columns: 1fr; }
+    .bar-meta, .hist-meta { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>✦ Gacha Simulator <span class="version-badge">v1.2</span></h1>
+  <p class="subtitle">Drop rate simulator · pity · history · roll log · MC histogram · auto-sim</p>
+
+  <!-- ══════════════ RATE SETTINGS ══════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(245,158,11,0.15);">⚙️</div>
+      <h2>Rate Settings</h2>
+    </div>
+    <div class="rate-grid">
+      <div class="rate-card ssr">
+        <div class="rate-label">SSR</div>
+        <div class="rate-input-wrap">
+          <input type="number" id="rateSSR" value="1" min="0" max="100" step="0.01" oninput="updateTotal();updateMCPreview()">
+          <span style="color:var(--muted)">%</span>
+        </div>
+      </div>
+      <div class="rate-card sr">
+        <div class="rate-label">SR</div>
+        <div class="rate-input-wrap">
+          <input type="number" id="rateSR" value="9" min="0" max="100" step="0.01" oninput="updateTotal()">
+          <span style="color:var(--muted)">%</span>
+        </div>
+      </div>
+      <div class="rate-card r">
+        <div class="rate-label">R</div>
+        <div class="rate-input-wrap">
+          <input type="number" id="rateR" value="30" min="0" max="100" step="0.01" oninput="updateTotal()">
+          <span style="color:var(--muted)">%</span>
+        </div>
+      </div>
+      <div class="rate-card n">
+        <div class="rate-label">N</div>
+        <div class="rate-input-wrap">
+          <input type="number" id="rateN" value="60" min="0" max="100" step="0.01" oninput="updateTotal()">
+          <span style="color:var(--muted)">%</span>
+        </div>
+      </div>
+    </div>
+    <div class="total-display">
+      <span style="color:var(--muted)">Total:</span>
+      <span class="total-val" id="totalDisplay">100%</span>
+      <span id="totalStatus" class="total-ok">✓ Valid</span>
+    </div>
+  </div>
+
+  <!-- ══════════════ ITEM POOL ══════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(139,92,246,0.15);">🎴</div>
+      <h2>Item Pool</h2>
+    </div>
+    <div class="item-add-row">
+      <input type="text" id="newItemName" placeholder="Item name…" onkeydown="if(event.key==='Enter')addItem()">
+      <select id="newItemRarity">
+        <option value="SSR">SSR</option>
+        <option value="SR">SR</option>
+        <option value="R">R</option>
+        <option value="N">N</option>
+      </select>
+      <button class="btn-primary" onclick="addItem()">+ Add Item</button>
+    </div>
+    <div id="itemPoolError"></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Item Name</th><th>Rarity</th><th>Actions</th></tr></thead>
+        <tbody id="itemPoolBody">
+          <tr><td colspan="4" class="empty-state">No items yet — add some above.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════ SINGLE SIMULATION ══════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(59,130,246,0.15);">🎲</div>
+      <h2>Single Pull Simulation</h2>
+    </div>
+
+    <div class="sim-input-row">
+      <div class="field-group">
+        <label class="field-label" for="numRolls">Number of Rolls</label>
+        <input type="number" id="numRolls" value="10" min="1" placeholder="e.g. 100">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="pricePerRoll">Price per Roll</label>
+        <input type="number" id="pricePerRoll" value="3" min="0" step="0.01" placeholder="e.g. 3.00">
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <label class="toggle-switch">
+        <input type="checkbox" id="pityToggle" onchange="togglePity()">
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-label">⭐ Pity System</span>
+    </div>
+    <div id="pitySection" style="display:none;">
+      <div class="pity-inputs">
+        <div class="field-group">
+          <label class="field-label">Guarantee SSR after X rolls without SSR</label>
+          <input type="number" id="pityThreshold" value="90" min="1" placeholder="e.g. 90">
+        </div>
+      </div>
+    </div>
+
+    <div id="simError"></div>
+    <button class="btn-primary" onclick="runSim()">▶ Run Simulation</button>
+
+    <div id="simResults" style="margin-top:20px;display:none;">
+      <div class="summary-cards" id="summaryCards"></div>
+
+      <div class="bar-chart">
+        <div class="bar-chart-title">Rarity Distribution</div>
+        <div id="barChartArea"></div>
+      </div>
+
+      <hr>
+
+      <h3 style="font-size:0.9rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Rarity Breakdown</h3>
+      <div class="table-wrap" style="margin-bottom:16px;">
+        <table>
+          <thead><tr><th>Rarity</th><th>Configured Rate</th><th>Count</th><th>Actual %</th><th>Δ</th></tr></thead>
+          <tbody id="rarityResultBody"></tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:0.9rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Items Obtained</h3>
+      <div id="itemResultArea"></div>
+
+      <!-- Roll Log (NEW v1.2) -->
+      <div class="roll-log-toggle">
+        <span style="font-size:0.85rem;color:var(--muted);">📜 Roll Log</span>
+        <button class="btn-secondary btn-sm" id="rollLogBtn" onclick="toggleRollLog()">▼ Show Roll Log</button>
+      </div>
+      <div id="rollLogWrap" style="display:none;">
+        <div class="roll-log-wrap">
+          <table>
+            <thead><tr><th>Roll #</th><th>Rarity</th><th>Item</th><th>Cost</th></tr></thead>
+            <tbody id="rollLogBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn-success" onclick="exportSimCSV()">⬇ Export Pull Result CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ MONTE CARLO ══════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(16,185,129,0.15);">📊</div>
+      <h2>Player POV Simulator (Monte Carlo)</h2>
+    </div>
+
+    <div class="sim-input-row">
+      <div class="field-group">
+        <label class="field-label" for="mcBudget">Budget ($)</label>
+        <input type="number" id="mcBudget" value="60" min="0" step="0.01" oninput="updateMCPreview()">
+      </div>
+      <div class="field-group">
+        <label class="field-label" for="mcPrice">Price per Roll ($)</label>
+        <input type="number" id="mcPrice" value="3" min="0.01" step="0.01" oninput="updateMCPreview()">
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <label class="toggle-switch">
+        <input type="checkbox" id="freeRollToggle" onchange="toggleFreeRolls()">
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-label">Free Roll Rule</span>
+    </div>
+    <div id="freeRollSection" style="display:none;">
+      <div class="free-roll-inputs">
+        <div class="field-group">
+          <label class="field-label">Every X paid rolls…</label>
+          <input type="number" id="freeRollEvery" value="10" min="1" oninput="updateMCPreview()">
+        </div>
+        <div class="field-group">
+          <label class="field-label">…grants Y free rolls</label>
+          <input type="number" id="freeRollGrant" value="1" min="1" oninput="updateMCPreview()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Preview Panel (NEW v1.2) -->
+    <div class="mc-preview" id="mcPreviewPanel">
+      <div class="mc-preview-item">
+        <div class="mc-preview-val" id="prevPaidRolls">20</div>
+        <div class="mc-preview-label">Paid Rolls</div>
+      </div>
+      <div class="mc-preview-item">
+        <div class="mc-preview-val" id="prevFreeRolls" style="color:var(--muted)">0</div>
+        <div class="mc-preview-label">Free Rolls</div>
+      </div>
+      <div class="mc-preview-item">
+        <div class="mc-preview-val" id="prevTotalRolls">20</div>
+        <div class="mc-preview-label">Total Rolls</div>
+      </div>
+      <div class="mc-preview-item mc-preview-auto">
+        <div class="mc-preview-val" id="prevAutoSims">5,000</div>
+        <div class="mc-preview-label">Auto Simulations</div>
+      </div>
+    </div>
+
+    <div id="mcError"></div>
+    <button class="btn-primary" onclick="runMonteCarlo()">▶ Run Monte Carlo</button>
+
+    <div id="mcResults" style="margin-top:20px;display:none;">
+      <div class="mc-stats" id="mcStats"></div>
+      <div class="insight-box" id="mcInsight"></div>
+
+      <!-- SSR Distribution Histogram (NEW v1.2) -->
+      <div class="hist-section">
+        <div class="hist-title">SSR Count Distribution Across All Simulations</div>
+        <div id="histArea"></div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn-success" onclick="exportMCCSV()">⬇ Export Player POV Summary CSV</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ HISTORY ══════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(99,102,241,0.15);">🕘</div>
+      <h2>Simulation History</h2>
+    </div>
+    <div class="history-header-row">
+      <span style="font-size:0.85rem;color:var(--muted)">Last 10 simulations (single + Monte Carlo)</span>
+      <button class="btn-danger btn-sm" onclick="clearHistory()">✕ Clear History</button>
+    </div>
+    <div id="historyArea"><div class="history-empty">No simulations run yet.</div></div>
+  </div>
+
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>Edit Item</h3>
+    <div class="field-group" style="margin-bottom:12px;">
+      <label class="field-label">Item Name</label>
+      <input type="text" id="editName">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Rarity</label>
+      <select id="editRarity">
+        <option value="SSR">SSR</option>
+        <option value="SR">SR</option>
+        <option value="R">R</option>
+        <option value="N">N</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let items = [];
+let nextId = 1;
+let editingId = null;
+let lastSimRolls = [];
+let lastMCResults = null;
+let simHistory = [];
+let rollLogVisible = false;
+
+// ══════════════════════════════════════
+// RATE HELPERS
+// ══════════════════════════════════════
+function getRates() {
+  return {
+    SSR: parseFloat(document.getElementById('rateSSR').value) || 0,
+    SR:  parseFloat(document.getElementById('rateSR').value)  || 0,
+    R:   parseFloat(document.getElementById('rateR').value)   || 0,
+    N:   parseFloat(document.getElementById('rateN').value)   || 0,
+  };
+}
+
+function updateTotal() {
+  const r = getRates();
+  const total = r.SSR + r.SR + r.R + r.N;
+  const disp = document.getElementById('totalDisplay');
+  const status = document.getElementById('totalStatus');
+  disp.textContent = (Math.round(total * 100) / 100) + '%';
+  if (Math.abs(total - 100) < 0.001) {
+    disp.className = 'total-val total-ok';
+    status.textContent = '✓ Valid'; status.className = 'total-ok';
+  } else {
+    disp.className = 'total-val total-err';
+    status.textContent = '✗ Must equal 100%'; status.className = 'total-err';
+  }
+}
+
+function validateRates() {
+  const r = getRates();
+  const total = r.SSR + r.SR + r.R + r.N;
+  if (Math.abs(total - 100) >= 0.001) return 'Rates must sum to exactly 100%.';
+  if (Object.values(r).some(v => v < 0)) return 'No rate can be negative.';
+  return null;
+}
+
+// ══════════════════════════════════════
+// ITEM POOL
+// ══════════════════════════════════════
+function addItem() {
+  const name = document.getElementById('newItemName').value.trim();
+  const rarity = document.getElementById('newItemRarity').value;
+  const err = document.getElementById('itemPoolError');
+  err.innerHTML = '';
+  if (!name) { err.innerHTML = '<div class="alert alert-error">Item name cannot be empty.</div>'; return; }
+  if (items.some(i => i.name.toLowerCase() === name.toLowerCase() && i.rarity === rarity)) {
+    err.innerHTML = '<div class="alert alert-error">An item with this name and rarity already exists.</div>'; return;
+  }
+  items.push({ id: nextId++, name, rarity });
+  document.getElementById('newItemName').value = '';
+  renderPool();
+}
+
+function deleteItem(id) { items = items.filter(i => i.id !== id); renderPool(); }
+
+function openEdit(id) {
+  const item = items.find(i => i.id === id);
+  if (!item) return;
+  editingId = id;
+  document.getElementById('editName').value = item.name;
+  document.getElementById('editRarity').value = item.rarity;
+  document.getElementById('editModal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('editModal').classList.remove('open'); editingId = null; }
+
+function saveEdit() {
+  const name = document.getElementById('editName').value.trim();
+  const rarity = document.getElementById('editRarity').value;
+  if (!name) return;
+  const item = items.find(i => i.id === editingId);
+  if (item) { item.name = name; item.rarity = rarity; }
+  closeModal(); renderPool();
+}
+
+function renderPool() {
+  const tbody = document.getElementById('itemPoolBody');
+  if (items.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">No items yet — add some above.</td></tr>'; return;
+  }
+  tbody.innerHTML = items.map((item, idx) => `
+    <tr>
+      <td style="color:var(--muted)">${idx + 1}</td>
+      <td style="font-weight:500">${escHtml(item.name)}</td>
+      <td><span class="rarity-badge badge-${item.rarity}">${item.rarity}</span></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn-secondary btn-sm" onclick="openEdit(${item.id})">✏ Edit</button>
+        <button class="btn-danger btn-sm" onclick="deleteItem(${item.id})">✕ Delete</button>
+      </td>
+    </tr>`).join('');
+}
+
+function validatePool(rates) {
+  for (const r of ['SSR','SR','R','N']) {
+    if (rates[r] > 0 && !items.some(i => i.rarity === r))
+      return `Rate for ${r} is ${rates[r]}% but there are no ${r} items in the pool.`;
+  }
+  return null;
+}
+
+// ══════════════════════════════════════
+// PITY
+// ══════════════════════════════════════
+function togglePity() {
+  document.getElementById('pitySection').style.display =
+    document.getElementById('pityToggle').checked ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════
+// ROLL ENGINE
+// ══════════════════════════════════════
+function rollRarity(rates) {
+  const rand = Math.random() * 100;
+  let cum = 0;
+  for (const r of ['SSR','SR','R','N']) {
+    cum += rates[r];
+    if (rand < cum) return r;
+  }
+  return 'N';
+}
+
+function rollItem(rarity) {
+  const pool = items.filter(i => i.rarity === rarity);
+  if (pool.length === 0) return { name: '(none)', rarity };
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+// ══════════════════════════════════════
+// SINGLE SIMULATION
+// ══════════════════════════════════════
+function runSim() {
+  const errEl = document.getElementById('simError');
+  errEl.innerHTML = '';
+  document.getElementById('simResults').style.display = 'none';
+
+  const rateErr = validateRates();
+  if (rateErr) { errEl.innerHTML = `<div class="alert alert-error">${rateErr}</div>`; return; }
+  const rates = getRates();
+  const poolErr = validatePool(rates);
+  if (poolErr) { errEl.innerHTML = `<div class="alert alert-error">${poolErr}</div>`; return; }
+
+  const numRolls = parseInt(document.getElementById('numRolls').value);
+  const price = parseFloat(document.getElementById('pricePerRoll').value) || 0;
+  if (!numRolls || numRolls <= 0) { errEl.innerHTML = '<div class="alert alert-error">Number of rolls must be greater than 0.</div>'; return; }
+  if (price < 0) { errEl.innerHTML = '<div class="alert alert-error">Price per roll cannot be negative.</div>'; return; }
+
+  const usePity = document.getElementById('pityToggle').checked;
+  const pityThreshold = parseInt(document.getElementById('pityThreshold').value) || 90;
+  if (usePity && pityThreshold < 1) { errEl.innerHTML = '<div class="alert alert-error">Pity threshold must be at least 1.</div>'; return; }
+
+  const rolls = [];
+  const rarityCounts = { SSR: 0, SR: 0, R: 0, N: 0 };
+  const itemCounts = {};
+  let rollsSinceSSR = 0, pityTriggers = 0;
+
+  for (let i = 1; i <= numRolls; i++) {
+    rollsSinceSSR++;
+    let rarity;
+    if (usePity && rollsSinceSSR >= pityThreshold) {
+      rarity = 'SSR'; pityTriggers++;
+    } else {
+      rarity = rollRarity(rates);
+    }
+    if (rarity === 'SSR') rollsSinceSSR = 0;
+
+    const item = rollItem(rarity);
+    rarityCounts[rarity]++;
+    itemCounts[item.name] = (itemCounts[item.name] || 0) + 1;
+    rolls.push({ rollNo: i, rarity, item: item.name, cost: price });
+  }
+
+  lastSimRolls = rolls;
+  const mostCommon = Object.entries(rarityCounts).sort((a,b) => b[1]-a[1])[0][0];
+  const topItem = Object.entries(itemCounts).sort((a,b) => b[1]-a[1])[0];
+  const totalCost = numRolls * price;
+  const ssrPct = numRolls > 0 ? (rarityCounts.SSR / numRolls * 100).toFixed(1) : '0.0';
+
+  const pityCard = usePity ? `<div class="card"><div class="card-val" style="color:var(--ssrColor)">${pityTriggers}</div><div class="card-label">Pity Triggers</div></div>` : '';
+
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="card"><div class="card-val">${numRolls}</div><div class="card-label">Total Rolls</div></div>
+    <div class="card"><div class="card-val">${totalCost % 1 === 0 ? '$'+totalCost : '$'+totalCost.toFixed(2)}</div><div class="card-label">Total Cost</div></div>
+    <div class="card"><div class="card-val" style="color:var(--ssrColor)">${rarityCounts.SSR}</div><div class="card-label">SSR Count</div></div>
+    <div class="card"><div class="card-val" style="color:var(--ssrColor);font-size:1.4rem">${ssrPct}%</div><div class="card-label">SSR Rate</div></div>
+    <div class="card"><div class="card-val"><span class="rarity-badge badge-${mostCommon}">${mostCommon}</span></div><div class="card-label">Most Common</div></div>
+    <div class="card"><div class="card-val" style="font-size:1rem;line-height:1.5">${topItem ? escHtml(topItem[0]) : '—'}</div><div class="card-label">Top Item${topItem ? ' ×'+topItem[1] : ''}</div></div>
+    ${pityCard}`;
+
+  renderBarChart(rarityCounts, numRolls, rates);
+
+  document.getElementById('rarityResultBody').innerHTML = ['SSR','SR','R','N'].map(r => {
+    const count = rarityCounts[r];
+    const actual = numRolls > 0 ? (count / numRolls * 100) : 0;
+    const configured = rates[r];
+    const delta = actual - configured;
+    const deltaStr = (delta >= 0 ? '+' : '') + delta.toFixed(2) + '%';
+    const deltaColor = Math.abs(delta) < 1 ? 'var(--muted)' : (delta > 0 ? 'var(--success)' : 'var(--danger)');
+    return `<tr>
+      <td><span class="rarity-badge badge-${r}">${r}</span></td>
+      <td>${configured}%</td><td><strong>${count}</strong></td>
+      <td>${actual.toFixed(2)}%</td>
+      <td style="color:${deltaColor};font-weight:600">${deltaStr}</td>
+    </tr>`;
+  }).join('');
+
+  // Items obtained table
+  const itemArea = document.getElementById('itemResultArea');
+  if (Object.keys(itemCounts).length === 0) {
+    itemArea.innerHTML = '<div class="empty-state">No items rolled.</div>';
+  } else {
+    const sorted = Object.entries(itemCounts).sort((a,b) => b[1]-a[1]);
+    const tableRows = sorted.map(([name, count]) => {
+      const it = items.find(i => i.name === name);
+      const r = it ? it.rarity : 'N';
+      const pct = (count / numRolls * 100).toFixed(1);
+      return `<tr>
+        <td style="font-weight:500">${escHtml(name)}</td>
+        <td><span class="rarity-badge badge-${r}">${r}</span></td>
+        <td><strong>${count}</strong></td>
+        <td>${pct}%</td>
+      </tr>`;
+    }).join('');
+    itemArea.innerHTML = `
+      <div class="table-wrap" style="margin-bottom:4px;">
+        <table>
+          <thead><tr><th>Item Name</th><th>Rarity</th><th>Count</th><th>Actual %</th></tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  // Roll log (render but keep hidden until toggled)
+  renderRollLog(rolls);
+  rollLogVisible = false;
+  document.getElementById('rollLogWrap').style.display = 'none';
+  document.getElementById('rollLogBtn').textContent = `▼ Show Roll Log (${rolls.length} rolls)`;
+
+  document.getElementById('simResults').style.display = 'block';
+
+  addToHistory({
+    type: 'single', timestamp: new Date(),
+    rolls: numRolls, cost: totalCost, ssrCount: rarityCounts.SSR,
+    ssrPct, mostCommon, topItem: topItem ? topItem[0] : '—',
+    pityUsed: usePity, pityTriggers,
+  });
+}
+
+// ══════════════════════════════════════
+// ROLL LOG
+// ══════════════════════════════════════
+function renderRollLog(rolls) {
+  document.getElementById('rollLogBody').innerHTML = rolls.map(r => {
+    const costStr = r.cost === 0 ? 'Free' : (r.cost % 1 === 0 ? '$'+r.cost : '$'+r.cost.toFixed(2));
+    return `<tr>
+      <td style="color:var(--muted)">${r.rollNo}</td>
+      <td><span class="rarity-badge badge-${r.rarity}">${r.rarity}</span></td>
+      <td>${escHtml(r.item)}</td>
+      <td style="color:var(--muted)">${costStr}</td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleRollLog() {
+  rollLogVisible = !rollLogVisible;
+  document.getElementById('rollLogWrap').style.display = rollLogVisible ? 'block' : 'none';
+  const btn = document.getElementById('rollLogBtn');
+  btn.textContent = rollLogVisible
+    ? `▲ Hide Roll Log (${lastSimRolls.length} rolls)`
+    : `▼ Show Roll Log (${lastSimRolls.length} rolls)`;
+}
+
+// ══════════════════════════════════════
+// BAR CHART
+// ══════════════════════════════════════
+function renderBarChart(rarityCounts, numRolls, rates) {
+  const colors = { SSR:'var(--ssrColor)', SR:'var(--srColor)', R:'var(--rColor)', N:'var(--nColor)' };
+  document.getElementById('barChartArea').innerHTML = ['SSR','SR','R','N'].map(r => {
+    const count = rarityCounts[r];
+    const pct = numRolls > 0 ? (count / numRolls * 100) : 0;
+    const label = pct >= 5 ? `${count} (${pct.toFixed(1)}%)` : '';
+    return `
+      <div class="bar-row">
+        <span class="bar-rarity-label" style="color:${colors[r]}">${r}</span>
+        <div class="bar-track"><div class="bar-fill bar-${r}" style="width:${Math.min(pct,100)}%">${label}</div></div>
+        <span class="bar-meta">${count} rolls · ${pct.toFixed(1)}%<br><span style="color:var(--border);font-size:0.7rem">cfg ${rates[r]}%</span></span>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// MONTE CARLO — LIVE PREVIEW
+// ══════════════════════════════════════
+function calcMCParams() {
+  const budget    = parseFloat(document.getElementById('mcBudget').value) || 0;
+  const price     = parseFloat(document.getElementById('mcPrice').value)  || 0;
+  const useFree   = document.getElementById('freeRollToggle').checked;
+  const freeEvery = parseInt(document.getElementById('freeRollEvery').value) || 10;
+  const freeGrant = parseInt(document.getElementById('freeRollGrant').value) || 1;
+
+  const paidRolls = price > 0 ? Math.floor(budget / price) : 0;
+  let freeRolls = 0;
+  if (useFree && freeEvery > 0 && paidRolls > 0) {
+    freeRolls = Math.floor(paidRolls / freeEvery) * freeGrant;
+  }
+  const totalRolls = paidRolls + freeRolls;
+  // Auto-sim: target ~500,000 total roll-computations for accuracy, capped 2000–20000
+  const autoSims = totalRolls > 0
+    ? Math.max(2000, Math.min(20000, Math.round(500000 / totalRolls)))
+    : 2000;
+
+  return { budget, price, paidRolls, freeRolls, totalRolls, freeEvery, freeGrant, useFree, autoSims };
+}
+
+function updateMCPreview() {
+  const p = calcMCParams();
+  document.getElementById('prevPaidRolls').textContent  = p.paidRolls.toLocaleString();
+  document.getElementById('prevFreeRolls').textContent  = p.freeRolls.toLocaleString();
+  document.getElementById('prevFreeRolls').style.color  = p.freeRolls > 0 ? 'var(--success)' : 'var(--muted)';
+  document.getElementById('prevTotalRolls').textContent = p.totalRolls.toLocaleString();
+  document.getElementById('prevAutoSims').textContent   = p.autoSims.toLocaleString();
+}
+
+function toggleFreeRolls() {
+  document.getElementById('freeRollSection').style.display =
+    document.getElementById('freeRollToggle').checked ? 'block' : 'none';
+  updateMCPreview();
+}
+
+// ══════════════════════════════════════
+// MONTE CARLO — RUN
+// ══════════════════════════════════════
+function runMonteCarlo() {
+  const errEl = document.getElementById('mcError');
+  errEl.innerHTML = '';
+  document.getElementById('mcResults').style.display = 'none';
+
+  const rateErr = validateRates();
+  if (rateErr) { errEl.innerHTML = `<div class="alert alert-error">${rateErr}</div>`; return; }
+  const rates = getRates();
+  const poolErr = validatePool(rates);
+  if (poolErr) { errEl.innerHTML = `<div class="alert alert-error">${poolErr}</div>`; return; }
+
+  const p = calcMCParams();
+  if (isNaN(p.budget) || p.budget < 0) { errEl.innerHTML = '<div class="alert alert-error">Budget must be ≥ 0.</div>'; return; }
+  if (isNaN(p.price)  || p.price <= 0) { errEl.innerHTML = '<div class="alert alert-error">Price per roll must be > 0.</div>'; return; }
+  if (p.totalRolls <= 0) { errEl.innerHTML = '<div class="alert alert-error">Budget too low for even 1 roll at the given price.</div>'; return; }
+
+  const { paidRolls, freeRolls, totalRolls, autoSims: sims, useFree, freeEvery, freeGrant } = p;
+
+  const ssrCounts = [];
+  let atLeastOne = 0;
+
+  for (let s = 0; s < sims; s++) {
+    let ssrCount = 0;
+    for (let i = 0; i < totalRolls; i++) {
+      if (rollRarity(rates) === 'SSR') ssrCount++;
+    }
+    ssrCounts.push(ssrCount);
+    if (ssrCount >= 1) atLeastOne++;
+  }
+
+  const chanceAtLeastOne = (atLeastOne / sims * 100).toFixed(1);
+  const chanceZero = (100 - parseFloat(chanceAtLeastOne)).toFixed(1);
+  const totalSSR = ssrCounts.reduce((a,b) => a+b, 0);
+  const avgSSR = (totalSSR / sims).toFixed(2);
+  const bestSSR = Math.max(...ssrCounts);
+  const worstSSR = Math.min(...ssrCounts);
+
+  lastMCResults = { budget: p.budget, price: p.price, paidRolls, freeRolls, totalRolls, sims, chanceAtLeastOne, chanceZero, avgSSR, bestSSR, worstSSR, useFree, freeEvery, freeGrant };
+
+  document.getElementById('mcStats').innerHTML = `
+    <div class="mc-card"><div class="mc-val" style="color:var(--success)">${chanceAtLeastOne}%</div><div class="mc-label">Chance of ≥1 SSR</div></div>
+    <div class="mc-card"><div class="mc-val" style="color:var(--danger)">${chanceZero}%</div><div class="mc-label">Chance of 0 SSR</div></div>
+    <div class="mc-card"><div class="mc-val" style="color:var(--ssrColor)">${avgSSR}</div><div class="mc-label">Avg SSR / Session</div></div>
+    <div class="mc-card"><div class="mc-val" style="color:var(--accent2)">${bestSSR}</div><div class="mc-label">Best Result (SSR)</div></div>
+    <div class="mc-card"><div class="mc-val" style="color:var(--muted)">${worstSSR}</div><div class="mc-label">Worst Result (SSR)</div></div>
+    <div class="mc-card"><div class="mc-val">${totalRolls.toLocaleString()}</div><div class="mc-label">Rolls / Session${useFree ? ' (incl. free)' : ''}</div></div>
+    <div class="mc-card"><div class="mc-val" style="font-size:1.1rem">${sims.toLocaleString()}</div><div class="mc-label">Simulations (auto)</div></div>`;
+
+  const budgetStr = p.budget % 1 === 0 ? '$'+p.budget : '$'+p.budget.toFixed(2);
+  const freeNote = useFree && freeRolls > 0 ? ` (including ${freeRolls} free roll${freeRolls !== 1 ? 's' : ''})` : '';
+  const luckyNote = parseFloat(chanceAtLeastOne) >= 90
+    ? 'This is a <strong>very high</strong> chance — most players will get at least one SSR.'
+    : parseFloat(chanceAtLeastOne) >= 50
+    ? 'Better than even odds — about <strong>half or more</strong> of all players will get an SSR.'
+    : parseFloat(chanceAtLeastOne) >= 25
+    ? 'Odds are <strong>below average</strong> — consider a larger budget for a reliable SSR.'
+    : 'The odds are <strong>quite low</strong> — most players will likely get nothing at the SSR tier.';
+
+  document.getElementById('mcInsight').innerHTML =
+    `Spending <strong>${budgetStr}</strong> buys <strong>${paidRolls} paid roll${paidRolls !== 1 ? 's' : ''}${freeNote}</strong>. ` +
+    `Across <strong>${sims.toLocaleString()} auto-simulated sessions</strong>, there is a ` +
+    `<strong>${chanceAtLeastOne}% chance of getting at least 1 SSR</strong> ` +
+    `(${chanceZero}% chance of none). On average, expect <strong>${avgSSR} SSR${parseFloat(avgSSR) !== 1 ? 's' : ''}</strong> per session. ${luckyNote}`;
+
+  renderSSRHistogram(ssrCounts, sims);
+
+  document.getElementById('mcResults').style.display = 'block';
+
+  addToHistory({
+    type: 'montecarlo', timestamp: new Date(),
+    rolls: totalRolls, sims, cost: p.budget,
+    avgSSR: parseFloat(avgSSR), chanceAtLeastOne: parseFloat(chanceAtLeastOne),
+  });
+}
+
+// ══════════════════════════════════════
+// SSR DISTRIBUTION HISTOGRAM (NEW v1.2)
+// ══════════════════════════════════════
+function renderSSRHistogram(ssrCounts, sims) {
+  // Build frequency map; group anything > 8 into "9+"
+  const MAX_BUCKET = 8;
+  const freq = {};
+  for (const c of ssrCounts) {
+    const key = c > MAX_BUCKET ? (MAX_BUCKET + 1) : c;
+    freq[key] = (freq[key] || 0) + 1;
+  }
+
+  // Find max freq for scaling
+  const maxFreq = Math.max(...Object.values(freq));
+
+  // Determine buckets to show (0 up to highest seen)
+  const maxKey = Math.max(...Object.keys(freq).map(Number));
+  const buckets = [];
+  for (let i = 0; i <= maxKey; i++) buckets.push(i);
+
+  const html = buckets.map(k => {
+    const count = freq[k] || 0;
+    const pct = (count / sims * 100);
+    const barW = maxFreq > 0 ? (count / maxFreq * 100) : 0;
+    const label = k === MAX_BUCKET + 1 ? `${MAX_BUCKET + 1}+ SSR` : `${k} SSR`;
+    const innerLabel = pct >= 4 ? `${count.toLocaleString()} (${pct.toFixed(1)}%)` : '';
+    return `
+      <div class="hist-row">
+        <span class="hist-label">${label}</span>
+        <div class="hist-track"><div class="hist-fill" style="width:${barW}%">${innerLabel}</div></div>
+        <span class="hist-meta">${count.toLocaleString()} · ${pct.toFixed(1)}%</span>
+      </div>`;
+  }).join('');
+
+  document.getElementById('histArea').innerHTML = html || '<div class="empty-state">No data.</div>';
+}
+
+// ══════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════
+function addToHistory(entry) {
+  simHistory.unshift(entry);
+  if (simHistory.length > 10) simHistory = simHistory.slice(0, 10);
+  renderHistory();
+}
+
+function clearHistory() { simHistory = []; renderHistory(); }
+
+function renderHistory() {
+  const area = document.getElementById('historyArea');
+  if (simHistory.length === 0) {
+    area.innerHTML = '<div class="history-empty">No simulations run yet.</div>'; return;
+  }
+
+  const rows = simHistory.map((h, idx) => {
+    const dt = h.timestamp;
+    const dateStr = dt.toLocaleDateString();
+    const timeStr = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const costStr = h.cost % 1 === 0 ? '$'+h.cost : '$'+h.cost.toFixed(2);
+    const isMC = h.type === 'montecarlo';
+
+    const typeBadge = isMC
+      ? `<span style="font-size:0.7rem;background:rgba(16,185,129,0.15);color:var(--success);border:1px solid rgba(16,185,129,0.3);border-radius:10px;padding:1px 6px;">Monte Carlo</span>`
+      : `<span style="font-size:0.7rem;background:rgba(59,130,246,0.15);color:var(--rColor);border:1px solid rgba(59,130,246,0.3);border-radius:10px;padding:1px 6px;">Single</span>`;
+
+    let ssrCell, lastCell;
+    if (isMC) {
+      ssrCell   = `<span style="color:var(--ssrColor);font-weight:700">${h.avgSSR} avg</span>`;
+      lastCell  = `<span style="color:var(--success);font-weight:700">${h.chanceAtLeastOne}%</span><br><span style="font-size:0.7rem;color:var(--muted)">${h.sims.toLocaleString()} sims</span>`;
+    } else {
+      const pityNote = h.pityUsed ? ` <span style="color:rgba(245,158,11,0.6);font-size:0.7rem">(pity×${h.pityTriggers})</span>` : '';
+      ssrCell  = `<span style="${h.ssrCount > 0 ? 'color:var(--ssrColor)' : 'color:var(--muted)'};font-weight:700">${h.ssrCount}${pityNote}</span><br><span style="font-size:0.7rem;color:var(--muted)">${h.ssrPct}%</span>`;
+      lastCell = `<span class="rarity-badge badge-${h.mostCommon}">${h.mostCommon}</span>`;
+    }
+
+    return `<tr>
+      <td style="color:var(--muted);font-size:0.8rem">${simHistory.length - idx}</td>
+      <td style="font-size:0.8rem;color:var(--muted)">${dateStr}<br>${timeStr}</td>
+      <td>${typeBadge}</td>
+      <td><strong>${h.rolls.toLocaleString()}</strong>${isMC ? `<br><span style="font-size:0.7rem;color:var(--muted)">per session</span>` : ''}</td>
+      <td>${costStr}${isMC ? `<br><span style="font-size:0.7rem;color:var(--muted)">budget</span>` : ''}</td>
+      <td>${ssrCell}</td>
+      <td>${lastCell}</td>
+    </tr>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Date / Time</th><th>Type</th><th>Rolls</th><th>Cost</th><th>SSR</th><th>Most Common / ≥1 Chance</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+// ══════════════════════════════════════
+// CSV EXPORTS
+// ══════════════════════════════════════
+function exportSimCSV() {
+  if (!lastSimRolls.length) return;
+  const header = 'Roll No.,Rarity,Item Name,Cost\n';
+  const rows = lastSimRolls.map(r => `${r.rollNo},${r.rarity},"${r.item.replace(/"/g,'""')}",${r.cost}`).join('\n');
+  downloadCSV('gacha-pull-result.csv', header + rows);
+}
+
+function exportMCCSV() {
+  if (!lastMCResults) return;
+  const r = lastMCResults;
+  const header = 'Metric,Value\n';
+  const rows = [
+    ['Budget', '$'+r.budget], ['Price per Roll', '$'+r.price],
+    ['Paid Rolls', r.paidRolls], ['Free Rolls', r.freeRolls],
+    ['Total Rolls per Session', r.totalRolls], ['Simulations Run (auto)', r.sims],
+    ['Chance of >=1 SSR', r.chanceAtLeastOne+'%'], ['Chance of 0 SSR', r.chanceZero+'%'],
+    ['Average SSR Count', r.avgSSR], ['Best SSR Result', r.bestSSR], ['Worst SSR Result', r.worstSSR],
+  ].map(([k,v]) => `"${k}","${v}"`).join('\n');
+  downloadCSV('gacha-player-pov-summary.csv', header + rows);
+}
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function downloadCSV(filename, content) {
+  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+updateTotal();
+updateMCPreview();
+</script>
+</body>
+</html>
