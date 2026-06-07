@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Restaurant Finder — Team Dinner Bangkok</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+         background: #f4f6f9; color: #1e293b; line-height: 1.65; }
+  a { color: #2563eb; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Layout ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 60px 0; }
+  section:nth-child(even) { background: #fff; }
+
+  /* ── Typography ── */
+  h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; line-height: 1.2; }
+  h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 8px; color: #0f172a; }
+  h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 6px; color: #1e293b; }
+  p  { margin-bottom: 12px; color: #374151; }
+  .section-label { font-size: .75rem; font-weight: 700; letter-spacing: .12em;
+                   text-transform: uppercase; color: #64748b; margin-bottom: 6px; }
+  .section-title { margin-bottom: 32px; }
+  .divider { border: none; border-top: 2px solid #e2e8f0; margin: 48px 0; }
+
+  /* ── NAV ── */
+  nav { position: sticky; top: 0; z-index: 100; background: #0f172a;
+        border-bottom: 3px solid #f59e0b; }
+  .nav-inner { display: flex; align-items: center; gap: 6px;
+               padding: 0 24px; max-width: 1100px; margin: 0 auto;
+               overflow-x: auto; white-space: nowrap; }
+  nav a { color: #94a3b8; font-size: .8rem; font-weight: 600; padding: 14px 12px;
+          letter-spacing: .04em; text-transform: uppercase; transition: color .2s; }
+  nav a:hover, nav a.active { color: #f59e0b; text-decoration: none; }
+
+  /* ── HEADER ── */
+  #header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f3460 100%);
+            color: #fff; padding: 70px 0 60px; }
+  .header-meta { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; }
+  .meta-chip { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+               border-radius: 20px; padding: 5px 14px; font-size: .8rem;
+               color: #cbd5e1; letter-spacing: .04em; }
+  .header-areas { display: flex; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
+  .area-badge { background: #f59e0b; color: #0f172a; font-weight: 700;
+                font-size: .85rem; padding: 6px 16px; border-radius: 6px; }
+  .area-badge.asok { background: #3b82f6; color: #fff; }
+  .header-sub { color: #94a3b8; font-size: 1.05rem; margin-top: 14px; max-width: 620px; }
+
+  /* ── OBJECTIVE ── */
+  .objective-box { background: #eff6ff; border-left: 4px solid #2563eb;
+                   border-radius: 0 10px 10px 0; padding: 24px 28px; }
+  .objective-box p { color: #1e293b; margin: 0; font-size: 1.0rem; }
+
+  /* ── WORKFLOW ── */
+  .workflow-track { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 0; }
+  .workflow-step { display: flex; flex-direction: column; align-items: center;
+                   text-align: center; flex: 1; min-width: 110px; position: relative; }
+  .workflow-step:not(:last-child)::after {
+    content: '→'; position: absolute; right: -14px; top: 20px;
+    font-size: 1.3rem; color: #94a3b8; z-index: 1; }
+  .step-icon { width: 52px; height: 52px; border-radius: 50%; display: flex;
+               align-items: center; justify-content: center;
+               font-size: 1.4rem; margin-bottom: 10px; }
+  .step-num { font-size: .65rem; font-weight: 800; letter-spacing: .08em;
+              text-transform: uppercase; color: #64748b; margin-bottom: 4px; }
+  .step-title { font-size: .82rem; font-weight: 700; color: #1e293b; margin-bottom: 2px; }
+  .step-tool { font-size: .72rem; color: #64748b; }
+
+  /* ── TOOLS USED ── */
+  .tools-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 16px; }
+  .tool-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+               padding: 16px 18px; }
+  .tool-card h4 { font-size: .8rem; font-weight: 700; color: #64748b;
+                  text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+  .tool-chip { display: inline-block; background: #f1f5f9; color: #334155;
+               font-size: .75rem; font-weight: 600; padding: 3px 10px;
+               border-radius: 4px; margin: 2px 2px 2px 0; }
+
+  /* ── DATA SOURCES ── */
+  .source-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .source-item { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+                 padding: 16px 20px; display: flex; align-items: flex-start; gap: 14px; }
+  .source-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: 2px; }
+  .source-item a { font-weight: 600; color: #2563eb; }
+  .source-item p { font-size: .85rem; color: #64748b; margin: 2px 0 0; }
+
+  /* ── SCORING CRITERIA ── */
+  .criteria-table { width: 100%; border-collapse: collapse; background: #fff;
+                    border-radius: 10px; overflow: hidden;
+                    box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+  .criteria-table th { background: #0f172a; color: #f8fafc; font-size: .8rem;
+                       font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+                       padding: 13px 16px; text-align: left; }
+  .criteria-table td { padding: 13px 16px; border-bottom: 1px solid #f1f5f9;
+                       font-size: .88rem; }
+  .criteria-table tr:last-child td { border-bottom: none; }
+  .criteria-table tr:hover td { background: #f8fafc; }
+  .weight-bar { height: 8px; background: #e2e8f0; border-radius: 4px;
+                overflow: hidden; width: 100%; margin-top: 4px; }
+  .weight-fill { height: 100%; background: #2563eb; border-radius: 4px; }
+  .weight-label { font-size: .78rem; font-weight: 700; color: #2563eb; }
+
+  /* ── RANKING TABLE ── */
+  .ranking-wrapper { overflow-x: auto; }
+  .ranking-table { width: 100%; border-collapse: collapse; background: #fff;
+                   border-radius: 10px; overflow: hidden;
+                   box-shadow: 0 1px 4px rgba(0,0,0,.07); min-width: 700px; }
+  .ranking-table thead th { background: #0f172a; color: #f8fafc; font-size: .78rem;
+                             font-weight: 700; text-transform: uppercase;
+                             letter-spacing: .05em; padding: 13px 14px; text-align: left; }
+  .ranking-table td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9;
+                      font-size: .85rem; vertical-align: middle; }
+  .ranking-table tr:last-child td { border-bottom: none; }
+  .ranking-table tr:hover td { background: #f8fafc; }
+  .rank-num { font-size: 1.0rem; font-weight: 800; color: #94a3b8; }
+  .rank-num.gold   { color: #d97706; }
+  .rank-num.silver { color: #64748b; }
+  .rank-num.bronze { color: #b45309; }
+  .restaurant-name { font-weight: 700; color: #0f172a; }
+  .area-tag { font-size: .7rem; font-weight: 700; border-radius: 4px;
+              padding: 2px 7px; margin-left: 6px; }
+  .tag-thonglor { background: #fef3c7; color: #92400e; }
+  .tag-asok     { background: #dbeafe; color: #1e40af; }
+  .score-badge { display: inline-block; font-weight: 800; font-size: .9rem;
+                 padding: 3px 10px; border-radius: 6px; }
+  .score-high   { background: #dcfce7; color: #166534; }
+  .score-mid    { background: #fef9c3; color: #854d0e; }
+  .score-low    { background: #fee2e2; color: #991b1b; }
+  .stars { color: #f59e0b; font-weight: 700; }
+  .group-yes  { color: #16a34a; font-weight: 700; }
+  .group-no   { color: #dc2626; font-weight: 700; }
+  .group-maybe { color: #d97706; font-weight: 700; }
+  .evidence-link { font-size: .75rem; color: #2563eb; }
+
+  /* ── RECOMMENDATION CARDS ── */
+  .area-section { margin-bottom: 48px; }
+  .area-heading { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+  .area-heading-badge { font-size: .85rem; font-weight: 800; padding: 7px 18px;
+                        border-radius: 8px; letter-spacing: .04em; }
+  .area-heading-badge.thonglor { background: #fef3c7; color: #92400e; }
+  .area-heading-badge.asok     { background: #dbeafe; color: #1e40af; }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 20px; }
+  .rec-card { background: #fff; border-radius: 14px; border: 1px solid #e2e8f0;
+              box-shadow: 0 2px 8px rgba(0,0,0,.06); overflow: hidden;
+              transition: box-shadow .2s, transform .2s; }
+  .rec-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.1); transform: translateY(-2px); }
+  .card-header { padding: 18px 20px 14px; border-bottom: 1px solid #f1f5f9; }
+  .card-rank { font-size: .72rem; font-weight: 800; text-transform: uppercase;
+               letter-spacing: .1em; margin-bottom: 6px; }
+  .rank-1 { color: #d97706; }
+  .rank-2 { color: #64748b; }
+  .rank-3 { color: #b45309; }
+  .card-name { font-size: 1.0rem; font-weight: 800; color: #0f172a; line-height: 1.3; }
+  .card-food { font-size: .78rem; color: #64748b; margin-top: 4px; }
+  .card-meta { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 20px 10px; }
+  .meta-item { display: flex; flex-direction: column; }
+  .meta-key { font-size: .65rem; text-transform: uppercase; letter-spacing: .08em;
+              color: #94a3b8; font-weight: 700; }
+  .meta-val { font-size: .88rem; font-weight: 700; color: #1e293b; }
+  .card-score-bar { padding: 0 20px 14px; }
+  .score-row { display: flex; align-items: center; gap: 10px; }
+  .score-label { font-size: .72rem; color: #64748b; width: 130px; flex-shrink: 0; }
+  .score-track { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 3px; background: #2563eb; }
+  .score-num { font-size: .72rem; font-weight: 700; color: #334155; width: 30px;
+               text-align: right; flex-shrink: 0; }
+  .card-body { padding: 14px 20px; border-top: 1px solid #f1f5f9; }
+  .card-body p { font-size: .85rem; color: #374151; margin: 0; line-height: 1.6; }
+  .card-footer { padding: 12px 20px 16px; display: flex; gap: 10px; }
+  .card-btn { font-size: .75rem; font-weight: 700; padding: 7px 14px; border-radius: 6px;
+              transition: background .15s; }
+  .btn-primary { background: #2563eb; color: #fff; }
+  .btn-primary:hover { background: #1d4ed8; text-decoration: none; }
+  .btn-secondary { background: #f1f5f9; color: #334155; border: 1px solid #e2e8f0; }
+  .btn-secondary:hover { background: #e2e8f0; text-decoration: none; }
+  .total-score-large { font-size: 2rem; font-weight: 900; }
+
+  /* ── COMPARISON TABLE ── */
+  .comp-wrapper { overflow-x: auto; }
+  .comp-table { width: 100%; border-collapse: collapse; min-width: 780px;
+                background: #fff; border-radius: 10px; overflow: hidden;
+                box-shadow: 0 1px 4px rgba(0,0,0,.07); }
+  .comp-table th { background: #0f172a; color: #f8fafc; padding: 13px 14px;
+                   font-size: .78rem; font-weight: 700; text-transform: uppercase;
+                   letter-spacing: .05em; text-align: left; }
+  .comp-table td { padding: 13px 14px; border-bottom: 1px solid #f1f5f9;
+                   font-size: .84rem; vertical-align: top; }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table tr:nth-child(even) td { background: #f8fafc; }
+  .comp-table .rest-col { font-weight: 700; color: #0f172a; }
+  .tradeoff { font-size: .78rem; color: #64748b; }
+
+  /* ── FOOTER ── */
+  footer { background: #0f172a; color: #94a3b8; padding: 36px 24px; text-align: center;
+           font-size: .82rem; }
+  footer strong { color: #e2e8f0; }
+
+  /* ── Responsive ── */
+  @media (max-width: 680px) {
+    .workflow-step:not(:last-child)::after { content: '↓'; right: auto; top: auto;
+      position: static; display: block; margin: 4px auto; }
+    .workflow-track { flex-direction: column; align-items: center; }
+    .cards-grid { grid-template-columns: 1fr; }
+    .tools-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+
+  /* ── SCENARIO TABS ── */
+  .scenario-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+  .scenario-tab{background:#f1f5f9;border:2px solid #e2e8f0;border-radius:8px;
+    padding:8px 18px;font-size:.82rem;font-weight:700;cursor:pointer;
+    color:#334155;transition:all .15s;}
+  .scenario-tab:hover{border-color:#2563eb;color:#2563eb;}
+  .scenario-tab.active{background:#2563eb;border-color:#2563eb;color:#fff;}
+  .scenario-desc{font-size:.82rem;color:#64748b;margin-bottom:24px;font-style:italic;}
+
+  /* ── FILTER BAR ── */
+  .filter-bar{display:flex;flex-wrap:wrap;gap:16px;background:#fff;
+    border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;margin-bottom:16px;}
+  .filter-group{display:flex;flex-direction:column;gap:4px;min-width:130px;}
+  .filter-label{font-size:.7rem;font-weight:700;text-transform:uppercase;
+    letter-spacing:.07em;color:#64748b;}
+  .filter-select{border:1px solid #e2e8f0;border-radius:6px;padding:6px 10px;
+    font-size:.82rem;background:#f8fafc;color:#1e293b;}
+  .filter-range{width:100%;accent-color:#2563eb;}
+  .filter-count{font-size:.82rem;font-weight:700;color:#64748b;margin-bottom:12px;}
+
+  /* ── REVIEW QUEUE ── */
+  #review-queue{background:#fffbeb;}
+  .queue-header{display:flex;justify-content:space-between;align-items:flex-start;
+    cursor:pointer;user-select:none;}
+  .queue-count{display:inline-block;background:#f59e0b;color:#0f172a;
+    font-size:.75rem;font-weight:800;padding:2px 8px;border-radius:10px;margin-left:8px;}
+  .queue-toggle{font-size:.82rem;font-weight:700;color:#64748b;white-space:nowrap;
+    padding:4px 0;}
+  .flag-card{background:#fff;border:1px solid #fde68a;border-left:4px solid #f59e0b;
+    border-radius:8px;padding:14px 18px;margin-bottom:12px;}
+  .flag-name{font-weight:700;color:#0f172a;font-size:.92rem;}
+  .flag-area{font-size:.72rem;font-weight:700;padding:2px 7px;border-radius:4px;
+    margin-left:6px;}
+  .flag-reasons{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 6px;}
+  .flag-tag{font-size:.72rem;font-weight:700;padding:3px 9px;border-radius:4px;
+    background:#fef3c7;color:#92400e;}
+  .flag-note{font-size:.78rem;color:#78716c;font-style:italic;}
+  .flag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
+
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#header">Home</a>
+    <a href="#objective">Objective</a>
+    <a href="#workflow">Workflow</a>
+    <a href="#tools">Tools</a>
+    <a href="#sources">Sources</a>
+    <a href="#scoring">Scoring</a>
+    <a href="#ranking">Top 10</a>
+    <a href="#recommendations">Top 3</a>
+    <a href="#comparison">Compare</a>
+    <a href="#review-queue">Review Queue</a>
+  </div>
+</nav>
+
+<!-- ─────────────────────────────────────────
+     1. HEADER
+───────────────────────────────────────── -->
+<section id="header">
+  <div class="container">
+    <div class="header-meta">
+      <span class="meta-chip">📅 June 2026</span>
+      <span class="meta-chip">👤 OOR</span>
+      <span class="meta-chip">🍽️ Team Dinner — 8–12 People</span>
+      <span class="meta-chip">📊 49 Restaurants Scored</span>
+    </div>
+    <h1>AI Restaurant Finder<br>Bangkok Team Dinner</h1>
+    <p class="header-sub">
+      An end-to-end AI workflow that scrapes, cleans, scores, and recommends
+      the best restaurants for a team dinner — using real data from Google Maps,
+      Wongnai, and Eatigo.
+    </p>
+    <div class="header-areas">
+      <span class="area-badge">📍 Thonglor</span>
+      <span class="area-badge asok">📍 Asok / Ratchada</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────
+     2. OBJECTIVE
+───────────────────────────────────────── -->
+<section id="objective" style="background:#fff;">
+  <div class="container">
+    <div class="section-title">
+      <p class="section-label">Section 2</p>
+      <h2>Objective</h2>
+    </div>
+    <div class="objective-box">
+      <p>
+        The goal of this workflow is to answer one question:
+        <strong>"Which 1–3 restaurants in Thonglor and Asok are best suited for a team dinner of 8–12 people — and why?"</strong>
+        Rather than relying on personal opinion or marketing rankings, this project
+        builds a data-driven evaluation pipeline. Raw restaurant data was collected
+        from Google Maps via Apify, then cleaned and normalised using AI, enriched
+        with pricing data from Wongnai and Eatigo, and finally scored against a
+        100-point model covering rating quality, group suitability, price fit, travel
+        convenience, data completeness, and dining uniqueness. The output is this
+        page — a structured, evidence-backed recommendation that any team lead can
+        act on immediately.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────
+     3. WORKFLOW OVERVIEW
+───────────────────────────────────────── -->
+<section id="workflow">
+  <div class="container">
+    <div class="section-title">
+      <p class="section-label">Section 3</p>
+      <h2>Workflow Overview</h2>
+    </div>
+    <div class="workflow-track">
+
+      <div class="workflow-step">
+        <div class="step-icon" style="background:#fef3c7;">🕷️</div>
+        <div class="step-num">Step 1</div>
+        <div class="step-title">Scraping</div>
+        <div class="step-tool">Apify</div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-icon" style="background:#fef9c3;">⚡</div>
+        <div class="step-num">Step 2</div>
+        <div class="step-title">Automation</div>
+        <div class="step-tool">Make.com</div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-icon" style="background:#dcfce7;">📊</div>
+        <div class="step-num">Step 3</div>
+        <div class="step-title">Google Sheets</div>
+        <div class="step-tool">Google Sheets</div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-icon" style="background:#dbeafe;">🤖</div>
+        <div class="step-num">Step 4</div>
+        <div class="step-title">AI Cleaning</div>
+        <div class="step-tool">Claude AI</div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-icon" style="background:#ede9fe;">🏆</div>
+        <div class="step-num">Step 5</div>
+        <div class="step-title">AI Scoring</div>
+        <div class="step-tool">Claude AI</div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-icon" style="background:#fce7f3;">💡</div>
+        <div class="step-num">Step 6</div>
+        <div class="step-title">AI Analysis</div>
+        <div class="step-tool">Claude AI</div>
+      </div>
+
+      <div class="workflow-step">
+        <div class="step-icon" style="background:#f0f9ff;">🌐</div>
+        <div class="step-num">Step 7</div>
+        <div class="step-title">HTML Output</div>
+        <div class="step-tool">HTML / CSS / JS</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────
+     4. TOOLS USED
+───────────────────────────────────────── -->
+<section id="tools" style="background:#fff;">
+  <div class="container">
+    <div class="section-title">
+      <p class="section-label">Section 4</p>
+      <h2>Tools Used</h2>
+    </div>
+    <div class="tools-grid">
+      <div class="tool-card">
+        <h4>Data Collection</h4>
+        <span class="tool-chip">Apify</span>
+        <span class="tool-chip">Google Maps API</span>
+        <p style="font-size:.8rem;color:#64748b;margin-top:8px;">
+          Restaurant data scraped from Google Maps using Apify's Google Maps Scraper actor. Output: JSON with name, rating, reviews, address, category, URL.
+        </p>
+      </div>
+      <div class="tool-card">
+        <h4>Data Storage</h4>
+        <span class="tool-chip">Google Sheets</span>
+        <span class="tool-chip">xlsx (openpyxl)</span>
+        <p style="font-size:.8rem;color:#64748b;margin-top:8px;">
+          Raw JSON exported to Google Sheets for review, then structured Excel files built with Python openpyxl for downstream analysis.
+        </p>
+      </div>
+      <div class="tool-card">
+        <h4>AI Cleaning & Enrichment</h4>
+        <span class="tool-chip">Claude AI (Sonnet 4.6)</span>
+        <span class="tool-chip">Wongnai</span>
+        <span class="tool-chip">Eatigo</span>
+        <p style="font-size:.8rem;color:#64748b;margin-top:8px;">
+          Claude normalised fields, inferred missing values, browsed Wongnai and Eatigo for verified price ranges, and added BTS/MRT travel notes.
+        </p>
+      </div>
+      <div class="tool-card">
+        <h4>AI Scoring & Analysis</h4>
+        <span class="tool-chip">Claude AI (Sonnet 4.6)</span>
+        <p style="font-size:.8rem;color:#64748b;margin-top:8px;">
+          Applied a 100-point scoring model across 6 criteria to all 49 restaurants. Generated per-restaurant justifications and area-level insight summaries.
+        </p>
+      </div>
+      <div class="tool-card">
+        <h4>Automation</h4>
+        <span class="tool-chip">Make.com</span>
+        <span class="tool-chip">Apify</span>
+        <span class="tool-chip">Google Sheets</span>
+        <p style="font-size:.8rem;color:#64748b;margin-top:8px;">
+          Make.com scenario automatically transfers scraped data from Apify to Google Sheets — triggering on Actor completion, fetching dataset items, and bulk-adding rows with no manual export needed.
+        </p>
+      </div>
+      <div class="tool-card">
+        <h4>Output &amp; Presentation</h4>
+        <span class="tool-chip">HTML5</span>
+        <span class="tool-chip">CSS3</span>
+        <span class="tool-chip">JavaScript</span>
+        <span class="tool-chip">Markdown (.md)</span>
+        <p style="font-size:.8rem;color:#64748b;margin-top:8px;">
+          Final recommendations rendered as a responsive HTML page and a Markdown document for easy sharing and version control.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────
+     5. DATA SOURCES
+───────────────────────────────────────── -->
+<section id="sources">
+  <div class="container">
+    <div class="section-title">
+      <p class="section-label">Section 5</p>
+      <h2>Data Sources</h2>
+    </div>
+    <ul class="source-list">
+      <li class="source-item">
+        <div class="source-icon">🗺️</div>
+        <div>
+          <a href="https://www.google.com/maps" target="_blank">Google Maps (via Apify Scraper)</a>
+          <p>Primary source for restaurant names, Google ratings, review counts, addresses, phone numbers, categories, and source URLs. Data collected June 2026 covering 24 restaurants in Thonglor and 25 in Asok/Ratchada (49 total).</p>
+        </div>
+      </li>
+      <li class="source-item">
+        <div class="source-icon">🍜</div>
+        <div>
+          <a href="https://www.wongnai.com" target="_blank">Wongnai (wongnai.com)</a>
+          <p>Thailand's largest restaurant review platform. Used to verify and source price ranges (฿/person) for each restaurant. Pricing data collected June 2026 by browsing individual restaurant listings.</p>
+        </div>
+      </li>
+      <li class="source-item">
+        <div class="source-icon">🍽️</div>
+        <div>
+          <a href="https://eatigo.com/en/bangkok" target="_blank">Eatigo (eatigo.com)</a>
+          <p>Restaurant reservation and dining deals platform. Used as secondary source for price validation and group dining availability where Wongnai listings were incomplete.</p>
+        </div>
+      </li>
+      <li class="source-item">
+        <div class="source-icon">🏅</div>
+        <div>
+          <a href="https://guide.michelin.com/en/bangkok-region" target="_blank">MICHELIN Guide Thailand</a>
+          <p>Referenced to identify MICHELIN-listed restaurants in the dataset (Fuego, Supanniga Eating Room) and add uniqueness scoring context.</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────
+     6. SCORING CRITERIA
+───────────────────────────────────────── -->
+<section id="scoring" style="background:#fff;">
+  <div class="container">
+    <div class="section-title">
+      <p class="section-label">Section 6</p>
+      <h2>Scoring Criteria</h2>
+    </div>
+    <p style="margin-bottom:24px;">Each restaurant was scored out of 100 points across six categories. Scores were assigned by Claude AI based on verifiable data fields, with written justification for every score.</p>
+    <div style="overflow-x:auto;">
+    <table class="criteria-table">
+      <thead>
+        <tr>
+          <th style="width:26%">Category</th>
+          <th style="width:12%">Max Points</th>
+          <th style="width:18%">Weight</th>
+          <th>Description &amp; Scoring Logic</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>⭐ Rating &amp; Review Quality</strong></td>
+          <td><span class="weight-label">25 pts</span></td>
+          <td>
+            <div class="weight-bar"><div class="weight-fill" style="width:25%"></div></div>
+            <small>25%</small>
+          </td>
+          <td>Based on Google rating (0–5) weighted by review count. A 4.9 with 9 reviews scores lower than a 4.8 with 1,000+. Perfect scores (5.0) with under 20 reviews are capped at 8/25 due to statistical unreliability.</td>
+        </tr>
+        <tr>
+          <td><strong>👥 Group Suitability</strong></td>
+          <td><span class="weight-label">20 pts</span></td>
+          <td>
+            <div class="weight-bar"><div class="weight-fill" style="width:20%"></div></div>
+            <small>20%</small>
+          </td>
+          <td>Assessed from format (hot pot / BBQ / buffet = Yes), private room availability, capacity mentions in reviews, and the "Suitable for Group" field. Yes = 18/20 · Maybe = 9/20 · No = 2/20.</td>
+        </tr>
+        <tr>
+          <td><strong>💰 Price Suitability</strong></td>
+          <td><span class="weight-label">15 pts</span></td>
+          <td>
+            <div class="weight-bar"><div class="weight-fill" style="width:15%"></div></div>
+            <small>15%</small>
+          </td>
+          <td>How well the price per person fits a typical team dinner budget (~250–600 ฿). Verified from Wongnai/Eatigo. Ideal range (251–500 ฿) scores 14–15/15. Very cheap (under 150 ฿) or very expensive (over 1,000 ฿) score lower.</td>
+        </tr>
+        <tr>
+          <td><strong>🚇 Travel Convenience</strong></td>
+          <td><span class="weight-label">15 pts</span></td>
+          <td>
+            <div class="weight-bar"><div class="weight-fill" style="width:15%"></div></div>
+            <small>15%</small>
+          </td>
+          <td>Proximity to BTS or MRT. Direct basement connection = 15/15. Under 5 min walk = 13/15. 10–15 min walk = 9–11/15. No travel info = 5/15. Penalises venues that require taxis for a full team.</td>
+        </tr>
+        <tr>
+          <td><strong>📋 Data Completeness</strong></td>
+          <td><span class="weight-label">15 pts</span></td>
+          <td>
+            <div class="weight-bar"><div class="weight-fill" style="width:15%"></div></div>
+            <small>15%</small>
+          </td>
+          <td>Counts how many key fields (price range, opening hours, distance note) are confirmed vs. N/A. All present = 15/15. Two N/A fields = 7/15. Missing data signals booking risk for group planning.</td>
+        </tr>
+        <tr>
+          <td><strong>✨ Uniqueness / Experience</strong></td>
+          <td><span class="weight-label">10 pts</span></td>
+          <td>
+            <div class="weight-bar"><div class="weight-fill" style="width:10%"></div></div>
+            <small>10%</small>
+          </td>
+          <td>Assessed from notes: MICHELIN listing, private rooms, rooftop, rare cuisine type, interactive format. Generic or unsuitable formats (bakery, hospital) score 1–2/10. Standout concepts score 8–10/10.</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────
+     7. TOP 10 RANKING TABLE
+───────────────────────────────────────── -->
+<!-- ─────────────────────────────────────────
+     7. TOP 10 RANKING TABLE  (now filterable)
+───────────────────────────────────────── -->
+<section id="ranking">
+  <div class="container">
+    <div class="section-title">
+      <p class="section-label">Section 7</p>
+      <h2>Restaurant Ranking — All 49 Restaurants</h2>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label class="filter-label">Food Type</label>
+        <select id="f-food" class="filter-select" onchange="applyFilters()">
+          <option value="">All Types</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Group Suitability</label>
+        <select id="f-group" class="filter-select" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="Yes">✅ Yes</option>
+          <option value="Maybe">⚠️ Maybe</option>
+          <option value="No">❌ No</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Area</label>
+        <select id="f-area" class="filter-select" onchange="applyFilters()">
+          <option value="">Both Areas</option>
+          <option value="Thonglor">Thonglor</option>
+          <option value="Asok">Asok</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Max Price <span id="price-val">฿1,500/person</span></label>
+        <input id="f-price" type="range" min="0" max="1500" value="1500" step="50"
+               class="filter-range" oninput="document.getElementById('price-val').textContent='฿'+this.value+'/person'; applyFilters()">
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Sort By</label>
+        <select id="f-sort" class="filter-select" onchange="applyFilters()">
+          <option value="score">Total Score</option>
+          <option value="rating">Rating</option>
+          <option value="reviews">Review Count</option>
+          <option value="price">Price (Low → High)</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-count" id="filter-count">Showing 49 restaurants</div>
+
+    <div class="ranking-wrapper">
+      <table class="ranking-table" id="ranking-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Restaurant Name</th>
+            <th>Food Type</th>
+            <th>Rating</th>
+            <th>Price / Person</th>
+            <th>Group Fit</th>
+            <th>Total Score</th>
+            <th>Evidence</th>
+          </tr>
+        </thead>
+        <tbody id="ranking-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+<!-- ─────────────────────────────────────────
+     8. TOP 3 RECOMMENDATION CARDS + SCENARIO TABS
+───────────────────────────────────────── -->
+<section id="recommendations" style="background:#fff;">
+  <div class="container">
+    <div class="section-title">
+      <p class="section-label">Section 8</p>
+      <h2>Top 3 Recommendations</h2>
+    </div>
+
+    <!-- Scenario Tabs -->
+    <div class="scenario-bar" role="tablist">
+      <button class="scenario-tab active" data-scenario="team"    onclick="switchScenario(this)">👥 Team 8–12</button>
+      <button class="scenario-tab"        data-scenario="safest"  onclick="switchScenario(this)">🛡️ Safest Choice</button>
+      <button class="scenario-tab"        data-scenario="budget"  onclick="switchScenario(this)">💰 Budget</button>
+      <button class="scenario-tab"        data-scenario="quick"   onclick="switchScenario(this)">⚡ Quick Meal</button>
+      <button class="scenario-tab"        data-scenario="meeting" onclick="switchScenario(this)">💼 Work-Friendly</button>
+    </div>
+    <p class="scenario-desc" id="scenario-desc">Ranked by group suitability score + overall total score. Only restaurants confirmed suitable for groups of 8–12.</p>
+
+    <!-- Dynamic Cards Container (split by area) -->
+    <div id="scenario-cards-container"></div>
+
+  </div>
+</section>
+<section id="comparison">
+  <div class="container">
+    <div class="section-title">
+      <p class="section-label">Section 9</p>
+      <h2>Restaurant Comparison — Top 5</h2>
+    </div>
+    <div class="comp-wrapper">
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th>Restaurant</th>
+          <th>Food Type</th>
+          <th>Price / Person</th>
+          <th>Google Rating</th>
+          <th>Group Suitability</th>
+          <th>Travel</th>
+          <th>Key Trade-off</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="rest-col">TAI ER 太二酸菜鱼</div>
+            <div><span class="area-tag tag-asok" style="margin:0;">Asok</span> <span class="score-badge score-high" style="font-size:.75rem;padding:2px 7px;">95</span></div>
+          </td>
+          <td>Chinese — Sichuan Fish</td>
+          <td><strong>251–500 ฿</strong></td>
+          <td><span class="stars">⭐ 4.9</span><br><small>1,906 reviews</small></td>
+          <td><span class="group-yes">✅ Yes — 18/20</span></td>
+          <td>🚇 Direct MRT basement<br><small style="color:#16a34a;">15/15</small></td>
+          <td><span class="tradeoff">Bold Sichuan spice — confirm with team. Book ahead: long queues at peak times.</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="rest-col">วัวกิว Wuagyu</div>
+            <div><span class="area-tag tag-asok" style="margin:0;">Asok</span> <span class="score-badge score-high" style="font-size:.75rem;padding:2px 7px;">91</span></div>
+          </td>
+          <td>Thai — Fire Boat Noodle Buffet</td>
+          <td><strong>399 ฿ net (buffet)</strong></td>
+          <td><span class="stars">⭐ 4.8</span><br><small>1,390 reviews</small></td>
+          <td><span class="group-yes">✅ Yes — 18/20</span></td>
+          <td>🚇 Direct MRT basement<br><small style="color:#16a34a;">15/15</small></td>
+          <td><span class="tradeoff">Casual buffet format — not suitable for formal or client-facing events.</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="rest-col">MAGURO (Esplanade Ratchada)</div>
+            <div><span class="area-tag tag-asok" style="margin:0;">Asok</span> <span class="score-badge score-high" style="font-size:.75rem;padding:2px 7px;">87</span></div>
+          </td>
+          <td>Japanese — Premium Sushi</td>
+          <td><strong>251–500 ฿</strong></td>
+          <td><span class="stars">⭐ 4.8</span><br><small>1,161 reviews</small></td>
+          <td><span class="group-yes">✅ Yes — 18/20</span></td>
+          <td>🚇 MRT Thailand Cultural Centre Exit 3<br><small style="color:#f59e0b;">12/15</small></td>
+          <td><span class="tradeoff">Opening hours unconfirmed — must call before booking. BTS users need an MRT transfer.</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="rest-col">HITORI SHABU (Marché Thonglor)</div>
+            <div><span class="area-tag tag-thonglor" style="margin:0;">Thonglor</span> <span class="score-badge score-high" style="font-size:.75rem;padding:2px 7px;">82</span></div>
+          </td>
+          <td>Shabu / Japanese Hot Pot</td>
+          <td><strong>480–1,290 ฿/set</strong></td>
+          <td><span class="stars">⭐ 4.8</span><br><small>1,284 reviews</small></td>
+          <td><span class="group-yes">✅ Yes — 18/20</span></td>
+          <td>🚶 Near BTS Thong Lo<br><small style="color:#f59e0b;">11/15</small></td>
+          <td><span class="tradeoff">Wide price range — pre-select a set tier for the group to avoid bill surprises. Mall setting, no view.</span></td>
+        </tr>
+        <tr>
+          <td>
+            <div class="rest-col">Lucca Thonglor (Rooftop)</div>
+            <div><span class="area-tag tag-thonglor" style="margin:0;">Thonglor</span> <span class="score-badge score-high" style="font-size:.75rem;padding:2px 7px;">82</span></div>
+          </td>
+          <td>Mediterranean — Rooftop</td>
+          <td><strong>501–1,000 ฿</strong></td>
+          <td><span class="stars">⭐ 4.9</span><br><small>819 reviews</small></td>
+          <td><span class="group-yes">✅ Yes — 18/20</span></td>
+          <td>🚶 ~10 min walk BTS Thong Lo<br><small style="color:#f59e0b;">10/15</small></td>
+          <td><span class="tradeoff">Rooftop books out on weekends — call directly for 8+ people. Higher price point for casual teams.</span></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <!-- Insight Summary -->
+    <div style="margin-top:40px;">
+      <h3 style="margin-bottom:16px;">💡 Key Insights from the Data</h3>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:12px;">
+        <li style="background:#eff6ff;border-left:4px solid #2563eb;border-radius:0 8px 8px 0;padding:14px 18px;font-size:.88rem;color:#1e293b;">
+          <strong>Travel convenience was the decisive separator.</strong> TAI ER (95) and Wuagyu (91) both earned 15/15 for travel via direct MRT basement access. Thonglor restaurants typically scored 10–11/15, losing 4–5 points before any other criterion.
+        </li>
+        <li style="background:#f0fdf4;border-left:4px solid #16a34a;border-radius:0 8px 8px 0;padding:14px 18px;font-size:.88rem;color:#1e293b;">
+          <strong>Price + group suitability = 35% of the score — Thonglor's premium venues were penalised by both.</strong> Fuego (MICHELIN, 4.8★) scored only 70 because it costs 1,000+ ฿/person and has unconfirmed group capacity. A high Google rating alone does not make a restaurant suitable for a team dinner.
+        </li>
+        <li style="background:#fefce8;border-left:4px solid #ca8a04;border-radius:0 8px 8px 0;padding:14px 18px;font-size:.88rem;color:#1e293b;">
+          <strong>Data gaps hurt otherwise strong candidates.</strong> HengShun (4.6★, Cantonese banquet — a natural group fit) scored only 66 because price, hours, and other fields were missing (7/15 data completeness). For planning, N/A fields = booking risk.
+        </li>
+        <li style="background:#fdf4ff;border-left:4px solid #9333ea;border-radius:0 8px 8px 0;padding:14px 18px;font-size:.88rem;color:#1e293b;">
+          <strong>Surprise: all top 3 overall are in Asok, not Thonglor.</strong> Thonglor dominates Bangkok food media — yet HITORI SHABU (82, Thonglor's best) ranks behind four Asok restaurants. Central Rama 9 venues combine direct MRT, high review volumes, group formats, and mid-range prices: the combination that actually wins this scoring model.
+        </li>
+        <li style="background:#fff1f2;border-left:4px solid #e11d48;border-radius:0 8px 8px 0;padding:14px 18px;font-size:.88rem;color:#1e293b;">
+          <strong>Review volume matters more than raw rating.</strong> Restaurants with 1,000+ reviews at 4.7–4.8 outscored those with 5.0 ratings from under 20 reviews. Statistical reliability is built into the scoring model — a 5.0 from 9 reviews is capped at 9/25.
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+
+<!-- ─────────────────────────────────────────
+     HUMAN REVIEW QUEUE
+───────────────────────────────────────── -->
+<section id="review-queue">
+  <div class="container">
+    <div class="queue-header" onclick="toggleQueue()">
+      <div>
+        <p class="section-label">Data Quality</p>
+        <h2>Human Review Queue <span class="queue-count" id="queue-count"></span></h2>
+        <p style="color:#64748b;font-size:.88rem;margin:4px 0 0;">
+          Restaurants automatically flagged for missing data — verify before booking.
+        </p>
+      </div>
+      <span class="queue-toggle" id="queue-toggle">▼ Show</span>
+    </div>
+    <div id="queue-body" style="display:none;margin-top:24px;"></div>
+  </div>
+</section>
+
+
+<footer>
+  <div style="max-width:1100px;margin:0 auto;">
+    <p><strong>AI Restaurant Finder — Bangkok Team Dinner</strong></p>
+    <p style="margin-top:6px;">
+      Created by <strong>OOR</strong> · June 2026 ·
+      Data: Google Maps (Apify), Wongnai, Eatigo ·
+      AI: Claude Sonnet 4.6 (Anthropic) ·
+      Workflow: Apify → Google Sheets → Claude AI → HTML
+    </p>
+    <p style="margin-top:6px;font-size:.75rem;color:#64748b;">
+      All scores and recommendations are based on publicly available data collected June 2026.
+      Prices and hours are subject to change — verify directly with restaurants before booking.
+    </p>
+  </div>
+</footer>
+
+<script>
+  // Highlight active nav link on scroll
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+<script>
+// ── DATA ──
+const RESTAURANTS = [
+  // ── THONGLOR ──
+  {id:1,  name:"Jirakaan Restaurant (จิรกาล)",          area:"Thonglor", food:"Thai",               cat:"Thai",            rating:4.8, reviews:1021, price:"501–1,000",    priceMin:501,  priceMid:750,  group:"Maybe", score:73, hours:"11:00–22:00 daily",          quick:0.3, meet:0.8, url:"https://www.google.com/maps/search/?api=1&query=Jirakaan%20Restaurant&query_place_id=ChIJd1SaQ7Sf4jARoFvSOzrxAn4",  notes:"Fine dining Thai; 15-course tasting menu available."},
+  {id:2,  name:"9Nine Korean Restaurant",                area:"Thonglor", food:"Korean BBQ",          cat:"Korean BBQ",      rating:4.9, reviews:1053, price:"1,000+",       priceMin:1000, priceMid:1200, group:"Yes",   score:81, hours:"11:00–23:00 daily",          quick:0.2, meet:0.3, url:"https://www.google.com/maps/search/?api=1&query=9Nine%20Korean%20Restaurant&query_place_id=ChIJs2v_ZfCf4jAR345T39kaqeI",  notes:"Premium 9-day wet-aged pork. High review count."},
+  {id:3,  name:"Xôi",                                    area:"Thonglor", food:"Vietnamese",          cat:"Other",           rating:4.7, reviews:58,   price:"150–350",      priceMin:150,  priceMid:250,  group:"Maybe", score:64, hours:"N/A",                         quick:0.7, meet:0.5, url:"https://www.google.com/maps/search/?api=1&query=X%C3%B4i&query_place_id=ChIJn7z6x9yd4jARvWWlYaD44SQ",  notes:"Low review count. Group capacity unclear."},
+  {id:4,  name:"BARTELS Thonglor",                       area:"Thonglor", food:"Brunch / Western",    cat:"Café / Brunch",   rating:4.7, reviews:973,  price:"251–500",      priceMin:251,  priceMid:375,  group:"No",    score:64, hours:"N/A",                         quick:0.8, meet:0.6, url:"https://www.google.com/maps/search/?api=1&query=BARTELS%20Thonglor&query_place_id=ChIJRYG-ZEmf4jARsi5wK97SIJU",  notes:"Café / brunch — not suited for group dinner."},
+  {id:5,  name:"Kalamansi Kitchen",                      area:"Thonglor", food:"Filipino",            cat:"Other",           rating:4.9, reviews:471,  price:"150–350",      priceMin:150,  priceMid:250,  group:"Maybe", score:76, hours:"11:00–22:00 (closed Mon)",   quick:0.6, meet:0.5, url:"https://www.google.com/maps/search/?api=1&query=Kalamansi%20Kitchen&query_place_id=ChIJobtAwjdhHTERy9f42dkd-RE",  notes:"Closed Mondays. Group capacity unconfirmed."},
+  {id:6,  name:"Fuego",                                  area:"Thonglor", food:"Spanish / Fusion",    cat:"Other",           rating:4.8, reviews:619,  price:"1,000+",       priceMin:1000, priceMid:1200, group:"Maybe", score:70, hours:"Mon–Fri 18:00–00:30",         quick:0.2, meet:0.8, url:"https://www.google.com/maps/search/?api=1&query=Fuego&query_place_id=ChIJN7fHY7Gf4jAR8jjTD8UA81k",  notes:"MICHELIN-listed. Dinner only. Tasting menu from 2,600 ฿++."},
+  {id:7,  name:"Ombra Modern Tavern",                    area:"Thonglor", food:"Italian / Wine Bar",  cat:"Italian",         rating:4.9, reviews:241,  price:"1,000+",       priceMin:1000, priceMid:1200, group:"Maybe", score:65, hours:"17:00–02:00 daily",          quick:0.3, meet:0.6, url:"https://www.google.com/maps/search/?api=1&query=Ombra%20Modern%20Tavern%20%40Seenspace&query_place_id=ChIJBesWKrCf4jARCG6Ux9nd1HM",  notes:"~3,500 ฿/person with wine."},
+  {id:8,  name:"IPPUDO Market Place Thonglor",           area:"Thonglor", food:"Ramen / Japanese",    cat:"Japanese",        rating:5.0, reviews:9,    price:"251–500",      priceMin:251,  priceMid:375,  group:"Maybe", score:58, hours:"N/A",                         quick:0.9, meet:0.4, url:"https://www.google.com/maps/search/?api=1&query=IPPUDO%20Market%20Place%20Thonglor&query_place_id=ChIJv4zrLA2f4jARiWBFL2hfMcI",  notes:"Perfect score but only 9 reviews — treat with caution."},
+  {id:9,  name:"Earth House Restaurant & Wine Bar",      area:"Thonglor", food:"Mediterranean",       cat:"Mediterranean",   rating:4.8, reviews:414,  price:"251–500",      priceMin:251,  priceMid:375,  group:"Maybe", score:72, hours:"N/A",                         quick:0.5, meet:0.7, url:"https://www.google.com/maps/search/?api=1&query=Earth%20House%20%7C%20Restaurant%20%7C%20Wine%20Bar&query_place_id=ChIJv5-PuJuf4jAR_l918T7WfeY",  notes:"Farm-to-table, plant-based focus. Event venue available."},
+  {id:10, name:"HITORI SHABU (Marché Thonglor)",         area:"Thonglor", food:"Shabu / Hot Pot",     cat:"Hot Pot / Shabu", rating:4.8, reviews:1284, price:"480–1,290",    priceMin:480,  priceMid:885,  group:"Yes",   score:82, hours:"10:00–21:00 daily",          quick:0.2, meet:0.3, url:"https://www.google.com/maps/search/?api=1&query=HITORI%20SHABU%20March%C3%A9%20Thonglor&query_place_id=ChIJ_Ulwh2ef4jAR6Pxj_eK0H4Q",  notes:"Sets 480–1,290 ฿. Pre-select tier for group."},
+  {id:11, name:"Baba Shuk",                              area:"Thonglor", food:"Mediterranean",       cat:"Mediterranean",   rating:4.5, reviews:131,  price:"501–1,000",    priceMin:501,  priceMid:750,  group:"Yes",   score:75, hours:"11:15–22:00 daily",          quick:0.6, meet:0.5, url:"https://www.google.com/maps/search/?api=1&query=Baba%20Shuk&query_place_id=ChIJQSXF4Auf4jARC-vcFMaaBkU",  notes:"Israeli-inspired. Open seating at theCOMMONS."},
+  {id:12, name:"Lucca Thonglor (Rooftop)",               area:"Thonglor", food:"Mediterranean",       cat:"Mediterranean",   rating:4.9, reviews:819,  price:"501–1,000",    priceMin:501,  priceMid:750,  group:"Yes",   score:82, hours:"07:00–23:00 daily",          quick:0.4, meet:0.7, url:"https://www.google.com/maps/search/?api=1&query=Lucca%20Thonglor&query_place_id=ChIJbx8TnXKf4jARvOgGrfi8gCQ",  notes:"Rooftop private events available. Book ahead for 8+."},
+  {id:13, name:"Otto Italian Restaurant",                area:"Thonglor", food:"Italian",             cat:"Italian",         rating:4.4, reviews:184,  price:"1,000+",       priceMin:1000, priceMid:1200, group:"Maybe", score:61, hours:"11:30–22:00 daily",          quick:0.2, meet:0.8, url:"https://www.google.com/maps/search/?api=1&query=Otto%20Italian%20Restaurant&query_place_id=ChIJhaPHJFCe4jARqrJ2JotywgU",  notes:"Hotel fine dining. Sets from 2,570 ฿++."},
+  {id:14, name:"Rockmen 69men",                          area:"Thonglor", food:"Ramen",               cat:"Japanese",        rating:4.6, reviews:793,  price:"300–400",      priceMin:300,  priceMid:350,  group:"No",    score:68, hours:"12:00–21:00 daily",          quick:0.9, meet:0.3, url:"https://www.google.com/maps/search/?api=1&query=Rockmen%2069men&query_place_id=ChIJyxHkUZKf4jAROJ5gk1aHKXU",  notes:"Only 69 bowls/day. Walk-in waitlist only — not for groups."},
+  {id:15, name:"Elder Burger Thailand",                  area:"Thonglor", food:"Burgers",             cat:"Café / Brunch",   rating:4.9, reviews:462,  price:"251–500",      priceMin:251,  priceMid:375,  group:"No",    score:67, hours:"10:30–22:00 daily",          quick:0.9, meet:0.2, url:"https://www.google.com/maps/search/?api=1&query=Elder%20Burger%20Thailand&query_place_id=ChIJJ5fIkfmf4jARGvG8DWuMddY",  notes:"Premium wagyu burgers. Fast food format."},
+  {id:16, name:"Genius Bar BKK",                         area:"Thonglor", food:"Health / Organic",    cat:"Café / Brunch",   rating:4.6, reviews:165,  price:"200–300",      priceMin:200,  priceMid:250,  group:"No",    score:64, hours:"10:00–20:00 daily",          quick:0.8, meet:0.5, url:"https://www.google.com/maps/search/?api=1&query=Genius%20Bar%20BKK&query_place_id=ChIJFc11EPOf4jAR3qq5PO2JXdo",  notes:"Health café — not suited for team dinner."},
+  {id:17, name:"คนละหม้อ Konlamoh",                      area:"Thonglor", food:"Thai / Hot Pot",      cat:"Hot Pot / Shabu", rating:4.8, reviews:575,  price:"251–500",      priceMin:251,  priceMid:375,  group:"Yes",   score:82, hours:"N/A",                         quick:0.2, meet:0.3, url:"https://www.google.com/maps/search/?api=1&query=%E0%B8%84%E0%B8%99%E0%B8%A5%E0%B8%B0%E0%B8%AB%E0%B8%A1%E0%B9%89%E0%B8%AD%20Konlamoh&query_place_id=ChIJ45ZOFhif4jARvzx8AMBgj-c",  notes:"Opening hours not confirmed — call ahead."},
+  {id:18, name:"Paella House & Wine Bar",                area:"Thonglor", food:"Spanish / Wine Bar",  cat:"Other",           rating:4.6, reviews:268,  price:"501–1,000",    priceMin:501,  priceMid:750,  group:"Maybe", score:64, hours:"N/A",                         quick:0.3, meet:0.6, url:"https://www.google.com/maps/search/?api=1&query=Paella%20House&query_place_id=ChIJ_9go2yaf4jARYGpLpW5FY-M",  notes:"27+ paella options. Reservations accepted."},
+  {id:19, name:"Supanniga Eating Room",                  area:"Thonglor", food:"Thai Fine Dining",    cat:"Thai",            rating:4.4, reviews:1727, price:"501–1,000",    priceMin:501,  priceMid:750,  group:"Yes",   score:81, hours:"11:30–14:30 & 17:30–23:30", quick:0.2, meet:0.8, url:"https://www.google.com/maps/search/?api=1&query=Supanniga%20Eating%20Room&query_place_id=ChIJYSgxk6yf4jAROxN8pCQzqJA",  notes:"MICHELIN-recommended. Advance booking required."},
+  {id:20, name:"Summer's Pizza (Seenspace)",             area:"Thonglor", food:"Pizza",               cat:"Other",           rating:4.9, reviews:181,  price:"300–500",      priceMin:300,  priceMid:400,  group:"Yes",   score:81, hours:"12:00–02:00 daily",          quick:0.7, meet:0.4, url:"https://www.google.com/maps/search/?api=1&query=Summer%27s%20Pizza%20Seenspace&query_place_id=ChIJZRZtQQCf4jAR1HzvP-ZJZVo",  notes:"Late-night friendly."},
+  {id:21, name:"SHAKARICH",                              area:"Thonglor", food:"Japanese",            cat:"Japanese",        rating:4.7, reviews:532,  price:"501–1,000",    priceMin:501,  priceMid:750,  group:"Yes",   score:78, hours:"11:00–17:00 (check dinner)", quick:0.4, meet:0.95,url:"https://www.google.com/maps/search/?api=1&query=SHAKARICH&query_place_id=ChIJWY30I1Oe4jARlP_8fcdYYhw",  notes:"Private rooms for 2–40 guests. Confirm dinner hours."},
+  {id:22, name:"Buenazo (Peruvian)",                     area:"Thonglor", food:"Peruvian",            cat:"Other",           rating:4.8, reviews:275,  price:"251–500",      priceMin:251,  priceMid:375,  group:"Maybe", score:77, hours:"12:00–21:30 daily",          quick:0.6, meet:0.5, url:"https://www.google.com/maps/search/?api=1&query=Buenazo%20CEVICHERIA&query_place_id=ChIJ2V75mQuf4jAR4qgquI2xlUs",  notes:"Only Peruvian in dataset. Open kitchen."},
+  {id:23, name:"haps Brunch & More",                     area:"Thonglor", food:"Brunch / Café",       cat:"Café / Brunch",   rating:4.7, reviews:232,  price:"251–500",      priceMin:251,  priceMid:375,  group:"No",    score:63, hours:"07:00–19:00 daily",          quick:0.8, meet:0.6, url:"https://www.google.com/maps/search/?api=1&query=haps%20Brunch%20More&query_place_id=ChIJQTkeKXef4jARwkx6J4mf7ls",  notes:"Closes at 19:00 — not suited for evening team dinner."},
+  {id:24, name:"Matsaya",                                area:"Thonglor", food:"Thai Fine Dining",    cat:"Thai",            rating:4.9, reviews:32,   price:"501–1,000",    priceMin:501,  priceMid:750,  group:"Maybe", score:66, hours:"Wed–Sun 18:00–22:30",        quick:0.2, meet:0.8, url:"https://www.google.com/maps/search/?api=1&query=Matsaya&query_place_id=ChIJzRVNFL6f4jARD4bbDixs-VA",  notes:"New fine-dining concept. Closed Mon–Tue. Very few reviews."},
+
+  // ── ASOK / RATCHADA ──
+  {id:25, name:"SO asean Cafe (CW Tower)",               area:"Asok",     food:"Asian / Café",        cat:"Café / Brunch",   rating:4.8, reviews:14,   price:"135–200",      priceMin:135,  priceMid:167,  group:"No",    score:50, hours:"Mon–Fri 07:00–19:00",        quick:0.8, meet:0.6, url:"https://www.google.com/maps/search/?api=1&query=SO%20asean%20Cafe%20CW%20Tower&query_place_id=ChIJTTE9QQCf4jARNAykKBI7to8",  notes:"Weekdays only. Not suited for dinner."},
+  {id:26, name:"Proper Job Bar & Restaurant",            area:"Asok",     food:"Bar / American / Thai",cat:"Other",           rating:4.6, reviews:162,  price:"200–400",      priceMin:200,  priceMid:300,  group:"Maybe", score:69, hours:"13:00–01:00 daily",          quick:0.5, meet:0.3, url:"https://www.google.com/maps/search/?api=1&query=Proper%20Job%20Bar%20Restaurant%20Bangkok&query_place_id=ChIJIfKTwZGe4jARPzjt-ryHE8c",  notes:"Small bar-restaurant. Group capacity unconfirmed."},
+  {id:27, name:"GuRu MaLa Hotpot (Rama 9)",             area:"Asok",     food:"Chinese Mala Hot Pot", cat:"Hot Pot / Shabu", rating:5.0, reviews:340,  price:"501–1,000",    priceMin:501,  priceMid:750,  group:"Yes",   score:82, hours:"Tue–Fri 16:30–23:30",        quick:0.2, meet:0.3, url:"https://www.google.com/maps/search/?api=1&query=GuRu%20MaLa%20Hotpot%20rama9&query_place_id=ChIJN5HqWgCf4jARSK9TZ0oP4HE",  notes:"Closed Mondays. Perfect score — verify reliability."},
+  {id:28, name:"Habib's Kebab Biryani (Terminal 21)",   area:"Asok",     food:"Indian / Halal",       cat:"Other",           rating:4.6, reviews:328,  price:"150–350",      priceMin:150,  priceMid:250,  group:"Maybe", score:75, hours:"10:00–22:00 daily",          quick:0.9, meet:0.3, url:"https://www.google.com/maps/search/?api=1&query=Habib%27s%20Kebab%20Terminal%2021&query_place_id=ChIJ53Vt4Xif4jARQrmIq3o6f0Y",  notes:"Halal. Direct BTS/MRT access via Terminal 21."},
+  {id:29, name:"Bawarchi Indian Restaurant",            area:"Asok",     food:"Indian",               cat:"Other",           rating:4.4, reviews:1764, price:"501–1,000",    priceMin:501,  priceMid:750,  group:"Yes",   score:80, hours:"11:00–23:00 daily",          quick:0.5, meet:0.7, url:"https://www.google.com/maps/search/?api=1&query=Bawarchi%20Indian%20Restaurant&query_place_id=ChIJNYiwcSSf4jARvz6BtwXg5L0",  notes:"Halal. Award-winning. High review count."},
+  {id:30, name:"SHEMROON Iranian / Middle Eastern",     area:"Asok",     food:"Persian / Middle East",cat:"Other",           rating:4.5, reviews:349,  price:"350–600",      priceMin:350,  priceMid:475,  group:"Maybe", score:68, hours:"N/A",                         quick:0.4, meet:0.6, url:"https://www.google.com/maps/search/?api=1&query=SHEMROON%20IRANIAN&query_place_id=ChIJoUfWYTuf4jAR-z2G6THfQjI",  notes:"Halal. Group capacity unconfirmed."},
+  {id:31, name:"UORIKI (Hokkaido Izakaya)",             area:"Asok",     food:"Japanese / Izakaya",   cat:"Japanese",        rating:4.9, reviews:111,  price:"N/A",          priceMin:null, priceMid:null, group:"Maybe", score:58, hours:"N/A",                         quick:0.4, meet:0.5, url:"https://www.google.com/maps/search/?api=1&query=UORIKI%20Hokkaido%20Izakaya&query_place_id=ChIJ6T_YbQCf4jARsdbKzeKlX-w",  notes:"Price not found on Wongnai or Eatigo."},
+  {id:32, name:"มัวสวิรัติ คุณหนิง",                    area:"Asok",     food:"Vegetarian",           cat:"Other",           rating:3.0, reviews:2,    price:"N/A",          priceMin:null, priceMid:null, group:"No",    score:27, hours:"N/A",                         quick:0.7, meet:0.5, url:"https://www.google.com/maps/search/?api=1&query=%E0%B8%A1%E0%B8%B1%E0%B8%A7%E0%B8%AA%E0%B8%A7%E0%B8%B4%E0%B8%A3%E0%B8%B1%E0%B8%95%E0%B8%B4&query_place_id=ChIJtZloDqSf4jARuZxy-ygew0w",  notes:"Very low rating (3.0) and only 2 reviews — not recommended."},
+  {id:33, name:"MAGURO (Esplanade Ratchada)",           area:"Asok",     food:"Japanese / Sushi",     cat:"Japanese",        rating:4.8, reviews:1161, price:"251–500",      priceMin:251,  priceMid:375,  group:"Yes",   score:87, hours:"N/A",                         quick:0.5, meet:0.7, url:"https://www.google.com/maps/search/?api=1&query=MAGURO%20Esplanade%20Ratchada&query_place_id=ChIJOYBG-ief4jARemjHAYK3rfQ",  notes:"Premium sushi. Opening hours unconfirmed — call ahead."},
+  {id:34, name:"ปั้นคำหอม (The Street Ratchada)",       area:"Asok",     food:"Bakery / Dessert",     cat:"Café / Brunch",   rating:3.8, reviews:75,   price:"50–100",       priceMin:50,   priceMid:75,   group:"No",    score:40, hours:"N/A",                         quick:0.9, meet:0.4, url:"https://www.google.com/maps/search/?api=1&query=%E0%B8%9B%E0%B8%B1%E0%B9%89%E0%B8%99%E0%B8%84%E0%B8%B3%E0%B8%AB%E0%B8%AD%E0%B8%A1&query_place_id=ChIJq6pqBIee4jARvIlat0rSIbY",  notes:"Bakery — not suitable for team dinner."},
+  {id:35, name:"Zen Japanese Restaurant",               area:"Asok",     food:"Japanese (Buffet)",    cat:"Japanese",        rating:3.8, reviews:342,  price:"599–1,199",    priceMin:599,  priceMid:899,  group:"Maybe", score:56, hours:"N/A",                         quick:0.4, meet:0.4, url:"https://www.google.com/maps/search/?api=1&query=Zen%20Japanese%20Restaurant%20Central%20Rama9&query_place_id=ChIJU0d6JY2e4jARGlmYqkLxo1M",  notes:"Below-average rating (3.8)."},
+  {id:36, name:"Bangladeshi Restaurant Jannah (Halal)", area:"Asok",     food:"Bangladeshi / Halal",  cat:"Other",           rating:5.0, reviews:15,   price:"N/A",          priceMin:null, priceMid:null, group:"Maybe", score:44, hours:"N/A",                         quick:0.7, meet:0.4, url:"https://www.google.com/maps/search/?api=1&query=Bangladeshi%20restaurant%20jannah&query_place_id=ChIJQxcrNgCf4jAR9Uoubq8wSC4",  notes:"5.0 stars but only 15 reviews — unreliable."},
+  {id:37, name:"Larb SCB E-san Food Stall",             area:"Asok",     food:"Thai (Isaan)",         cat:"Thai",            rating:3.7, reviews:7,    price:"N/A",          priceMin:null, priceMid:null, group:"No",    score:32, hours:"N/A",                         quick:0.9, meet:0.1, url:"https://www.google.com/maps/search/?api=1&query=Larb%20SCB%20E-san&query_place_id=ChIJixrvtfSe4jAReSZVIytOzHQ",  notes:"Food stall — not suited for team dinner."},
+  {id:38, name:"One Rachada (Buffet)",                  area:"Asok",     food:"Buffet",               cat:"Buffet",          rating:4.0, reviews:85,   price:"790–990",      priceMin:790,  priceMid:890,  group:"Yes",   score:64, hours:"N/A",                         quick:0.3, meet:0.6, url:"https://www.google.com/maps/search/?api=1&query=One%20Rachada&query_place_id=ChIJw2JVSI2e4jARr4eDnxqtaXU",  notes:"Hotel buffet at AVANI Ratchada. Confirm current hours."},
+  {id:39, name:"Sandee's Restaurant",                   area:"Asok",     food:"Thai",                 cat:"Thai",            rating:4.2, reviews:22,   price:"N/A",          priceMin:null, priceMid:null, group:"Maybe", score:47, hours:"N/A",                         quick:0.6, meet:0.5, url:"https://www.google.com/maps/search/?api=1&query=Sandee%27s%20Restaurant&query_place_id=ChIJGXh8UI2e4jARKtvyu7TogHQ",  notes:"Price not found on Wongnai."},
+  {id:40, name:"HengShun Restaurant (Cantonese)",       area:"Asok",     food:"Chinese",              cat:"Chinese",         rating:4.6, reviews:360,  price:"N/A",          priceMin:null, priceMid:null, group:"Yes",   score:66, hours:"N/A",                         quick:0.3, meet:0.7, url:"https://www.google.com/maps/search/?api=1&query=HengShun%20Restaurant&query_place_id=ChIJt6D2y5Of4jARcvCYZ4HIo8E",  notes:"Cantonese banquet style — confirm price on-site."},
+  {id:41, name:"Ama Restaurant (Crab Fried Rice)",      area:"Asok",     food:"Thai / Seafood",       cat:"Seafood",         rating:5.0, reviews:3,    price:"N/A",          priceMin:null, priceMid:null, group:"Maybe", score:44, hours:"N/A",                         quick:0.5, meet:0.4, url:"https://www.google.com/maps/search/?api=1&query=Ama%20Restaurant%20Crab%20Fried%20Rice&query_place_id=ChIJs1j9kYuf4jARNQqpNR6Wfrs",  notes:"Only 3 reviews — completely unreliable."},
+  {id:42, name:"Fuji Japanese (Phra Ram 9 Hospital)",   area:"Asok",     food:"Japanese",             cat:"Japanese",        rating:4.1, reviews:37,   price:"251–500",      priceMin:251,  priceMid:375,  group:"Maybe", score:58, hours:"N/A",                         quick:0.5, meet:0.4, url:"https://www.google.com/maps/search/?api=1&query=Fuji%20Japanese%20Restaurant%20Phra%20Ram%209&query_place_id=ChIJWV9pFKWf4jAR-XVXDa0L14w",  notes:"Inside a hospital — not suitable for team dinner."},
+  {id:43, name:"Aris Coffee & Restaurant (Jod Fair)",   area:"Asok",     food:"Café / Restaurant",    cat:"Café / Brunch",   rating:4.2, reviews:13,   price:"N/A",          priceMin:null, priceMid:null, group:"Maybe", score:46, hours:"N/A",                         quick:0.8, meet:0.6, url:"https://www.google.com/maps/search/?api=1&query=Aris%20coffee%20restaurant%20Jod%20Fair&query_place_id=ChIJi8AjIACf4jARzCSpft3DQo0",  notes:"Very few reviews. Price unknown."},
+  {id:44, name:"ขมิ้น",                                 area:"Asok",     food:"Asian / Thai",         cat:"Thai",            rating:3.5, reviews:27,   price:"251–500",      priceMin:251,  priceMid:375,  group:"No",    score:47, hours:"N/A",                         quick:0.6, meet:0.4, url:"https://www.google.com/maps/search/?api=1&query=%E0%B8%82%E0%B8%A1%E0%B8%B4%E0%B9%89%E0%B8%99&query_place_id=ChIJMW0Sx6qf4jARQx9PMvSOrb0",  notes:"Below-average rating (3.5) — not recommended."},
+  {id:45, name:"Restaurant Thai (Asok-Din Daeng)",      area:"Asok",     food:"Thai",                 cat:"Thai",            rating:4.1, reviews:160,  price:"N/A",          priceMin:null, priceMid:null, group:"Maybe", score:47, hours:"N/A",                         quick:0.6, meet:0.5, url:"https://www.google.com/maps/search/?api=1&query=Restaurant%20Thai%20Asok&query_place_id=ChIJr_hoVI2e4jARIf2gzA_MoCs",  notes:"Generic name — verify exact restaurant. Price unknown."},
+  {id:46, name:"On the Table (Esplanade Ratchada)",     area:"Asok",     food:"Japanese / Café",      cat:"Japanese",        rating:4.5, reviews:120,  price:"200–300",      priceMin:200,  priceMid:250,  group:"Maybe", score:67, hours:"N/A",                         quick:0.6, meet:0.6, url:"https://www.google.com/maps/search/?api=1&query=On%20the%20table%20Esplanade&query_place_id=ChIJTUkP9SSf4jARZRbxVY82DIc",  notes:"Japanese-Western fusion café. 200–300 ฿/person."},
+  {id:47, name:"TAI ER 太二酸菜鱼 (Central Rama 9)",     area:"Asok",     food:"Chinese (Sichuan)",    cat:"Chinese",         rating:4.9, reviews:1906, price:"251–500",      priceMin:251,  priceMid:375,  group:"Yes",   score:95, hours:"10:00–22:00 daily",          quick:0.5, meet:0.4, url:"https://www.google.com/maps/search/?api=1&query=TAI%20ER%20RAMA%209&query_place_id=ChIJRSyDGwCf4jARmvFkAuPtths",  notes:"Direct MRT access. 1,906 reviews. Book ahead — long queues."},
+  {id:48, name:"วัวกิว Wuagyu (Central Rama 9)",         area:"Asok",     food:"Noodles / Buffet",     cat:"Buffet",          rating:4.8, reviews:1390, price:"399 (buffet)",priceMin:399,  priceMid:399,  group:"Yes",   score:91, hours:"10:00–22:00 daily",          quick:0.7, meet:0.3, url:"https://www.google.com/maps/search/?api=1&query=Wuagyu%20Central%20Rama%209&query_place_id=ChIJTVEoJROf4jAR9-EIf6H-uXY",  notes:"Fixed 399 ฿ net buffet. Direct MRT access."},
+  {id:49, name:"SEE FAH สีฟ้า (Esplanade Ratchada)",    area:"Asok",     food:"Thai / Seafood",       cat:"Seafood",         rating:4.7, reviews:222,  price:"101–250",      priceMin:101,  priceMid:175,  group:"Yes",   score:83, hours:"10:00–23:00 daily",          quick:0.4, meet:0.5, url:"https://www.google.com/maps/search/?api=1&query=SEE%20FAH%20Esplanade%20Ratchada&query_place_id=ChIJtcT_HIae4jARbOD5gEf7wMQ",  notes:"Fresh seafood. Family/group dining style."}
+];
+
+
+// ── SCENARIO CONFIG ──
+const SCENARIOS = {
+  team:    { desc:"Ranked by group suitability + overall total score. Only restaurants confirmed suitable for groups of 8–12.", filter: r=>r.group==='Yes' },
+  safest:  { desc:"Ranked by rating credibility (star rating × review volume). Groups of 8–12 who want a proven, low-risk choice.", filter: r=>r.group!=='No' },
+  budget:  { desc:"Ranked by lowest price per person. Excludes restaurants with unconfirmed pricing.", filter: r=>r.priceMin!==null && r.group!=='No' },
+  quick:   { desc:"Ranked by service speed — best for teams with limited time. Fast food, ramen, noodles, cafés score highest.", filter: r=>true },
+  meeting: { desc:"Ranked by meeting-suitability — quieter venues, private rooms, or formal settings good for conversation.", filter: r=>r.group!=='No' }
+};
+
+function scenarioScore(r, s){
+  const nr = Math.min(r.reviews/2000,1);
+  const rat= (r.rating-3)/2;
+  const np = r.priceMin ? Math.max(0,1-r.priceMin/1200) : 0;
+  const grp= r.group==='Yes'?1:r.group==='Maybe'?0.5:0;
+  if(s==='team')    return grp*0.4+(r.score/100)*0.6;
+  if(s==='safest')  return rat*0.45+nr*0.55;
+  if(s==='budget')  return np*0.7+rat*0.3;
+  if(s==='quick')   return r.quick*0.65+rat*0.35;
+  if(s==='meeting') return r.meet*0.65+rat*0.35;
+  return 0;
+}
+
+function scenarioCardNote(r,s){
+  const pr = r.priceMin ? r.price+' ฿/person' : 'Price unconfirmed';
+  if(s==='team')    return `Total score ${r.score}/100. Group dining confirmed. ${r.rating}★ from ${r.reviews.toLocaleString()} reviews. ${pr}.`;
+  if(s==='safest')  return `${r.reviews.toLocaleString()} reviews at ${r.rating}★ — one of the most statistically reliable choices. ${pr}.`;
+  if(s==='budget')  return `At ${pr}, this is one of the most affordable group-suitable options. ${r.rating}★ from ${r.reviews.toLocaleString()} reviews.`;
+  if(s==='quick')   return `Fast-service format suited for teams with limited time. ${r.rating}★, ${r.reviews.toLocaleString()} reviews. ${pr}.`;
+  if(s==='meeting') return `Quieter setting suited to business conversation. ${r.rating}★ from ${r.reviews.toLocaleString()} reviews. ${pr}.`;
+}
+
+const MEDALS = ['🥇','🥈','🥉'];
+const RANK_CLASSES = ['rank-1','rank-2','rank-3'];
+const RANK_LABELS  = ['#1','#2','#3'];
+
+function renderCard(r, rank, scenario){
+  const groupCls = r.group==='Yes'?'group-yes':r.group==='Maybe'?'group-maybe':'group-no';
+  const groupIcon= r.group==='Yes'?'✅':r.group==='Maybe'?'⚠️':'❌';
+  const areaCls  = r.area==='Thonglor'?'tag-thonglor':'tag-asok';
+  const scoreCls = r.score>=75?'score-high':r.score>=55?'score-mid':'score-low';
+  return `<div class="rec-card">
+    <div class="card-header">
+      <div class="card-rank ${RANK_CLASSES[rank]}">${MEDALS[rank]} ${r.area} ${RANK_LABELS[rank]}</div>
+      <div class="card-name">${r.name}</div>
+      <div class="card-food">${r.food}</div>
+    </div>
+    <div class="card-meta">
+      <div class="meta-item" style="margin-right:16px">
+        <span class="meta-key">Score</span>
+        <span class="meta-val total-score-large" style="color:#166534">${r.score}</span>
+      </div>
+      <div class="meta-item" style="margin-right:16px">
+        <span class="meta-key">Price</span>
+        <span class="meta-val">${r.price||'N/A'} ฿</span>
+      </div>
+      <div class="meta-item" style="margin-right:16px">
+        <span class="meta-key">Rating</span>
+        <span class="meta-val">⭐ ${r.rating} (${r.reviews.toLocaleString()})</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-key">Group</span>
+        <span class="meta-val ${groupCls}">${groupIcon} ${r.group}</span>
+      </div>
+    </div>
+    <div class="card-body"><p>${scenarioCardNote(r,scenario)}</p></div>
+    <div class="card-footer">
+      <a class="card-btn btn-primary" href="${r.url}" target="_blank">Google Maps ↗</a>
+    </div>
+  </div>`;
+}
+
+function switchScenario(btn){
+  document.querySelectorAll('.scenario-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const s = btn.dataset.scenario;
+  document.getElementById('scenario-desc').textContent = SCENARIOS[s].desc;
+  renderScenarioCards(s);
+}
+
+function renderScenarioCards(scenario){
+  const cfg = SCENARIOS[scenario];
+  const filtered = RESTAURANTS.filter(cfg.filter);
+  const sorted   = [...filtered].sort((a,b)=>scenarioScore(b,scenario)-scenarioScore(a,scenario));
+
+  const thonglor = sorted.filter(r=>r.area==='Thonglor').slice(0,3);
+  const asok     = sorted.filter(r=>r.area==='Asok').slice(0,3);
+
+  const container = document.getElementById('scenario-cards-container');
+  let html = '';
+
+  if(thonglor.length){
+    html += `<div class="area-section">
+      <div class="area-heading">
+        <span class="area-heading-badge thonglor">📍 Thonglor</span>
+        <span style="color:#64748b;font-size:.9rem">BTS Thong Lo (E6)</span>
+      </div>
+      <div class="cards-grid">${thonglor.map((r,i)=>renderCard(r,i,scenario)).join('')}</div>
+    </div>`;
+  }
+  if(thonglor.length && asok.length) html += '<hr class="divider">';
+  if(asok.length){
+    html += `<div class="area-section">
+      <div class="area-heading">
+        <span class="area-heading-badge asok">📍 Asok / Ratchada</span>
+        <span style="color:#64748b;font-size:.9rem">BTS Asok (E4) · MRT Phra Ram 9</span>
+      </div>
+      <div class="cards-grid">${asok.map((r,i)=>renderCard(r,i,scenario)).join('')}</div>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+// ── FILTERABLE TABLE ──
+function buildFoodDropdown(){
+  const cats = [...new Set(RESTAURANTS.map(r=>r.cat))].sort();
+  const sel  = document.getElementById('f-food');
+  cats.forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
+}
+
+function applyFilters(){
+  const food  = document.getElementById('f-food').value;
+  const group = document.getElementById('f-group').value;
+  const area  = document.getElementById('f-area').value;
+  const price = parseInt(document.getElementById('f-price').value);
+  const sort  = document.getElementById('f-sort').value;
+
+  let rows = RESTAURANTS.filter(r=>{
+    if(food  && r.cat!==food)    return false;
+    if(group && r.group!==group) return false;
+    if(area  && r.area!==area)   return false;
+    if(r.priceMin!==null && r.priceMin>price) return false;
+    return true;
+  });
+
+  if(sort==='score')   rows.sort((a,b)=>b.score-a.score);
+  if(sort==='rating')  rows.sort((a,b)=>b.rating-a.rating||b.reviews-a.reviews);
+  if(sort==='reviews') rows.sort((a,b)=>b.reviews-a.reviews);
+  if(sort==='price')   rows.sort((a,b)=>(a.priceMin||9999)-(b.priceMin||9999));
+
+  document.getElementById('filter-count').textContent = `Showing ${rows.length} of ${RESTAURANTS.length} restaurants`;
+  renderTable(rows);
+}
+
+function renderTable(rows){
+  const medals=['🥇','🥈','🥉'];
+  const tbody = document.getElementById('ranking-body');
+  tbody.innerHTML = rows.map((r,i)=>{
+    const rankDisp = i<3 ? `<span class="rank-num ${['gold','silver','bronze'][i]}">${medals[i]}</span>` : `<span class="rank-num">${i+1}</span>`;
+    const scoreCls = r.score>=75?'score-high':r.score>=55?'score-mid':'score-low';
+    const groupCls = r.group==='Yes'?'group-yes':r.group==='Maybe'?'group-maybe':'group-no';
+    const groupIcon= r.group==='Yes'?'✅':r.group==='Maybe'?'⚠️':'❌';
+    const areaCls  = r.area==='Thonglor'?'tag-thonglor':'tag-asok';
+    return `<tr>
+      <td>${rankDisp}</td>
+      <td><span class="restaurant-name">${r.name}</span><span class="area-tag ${areaCls}">${r.area}</span></td>
+      <td>${r.food}</td>
+      <td><span class="stars">⭐ ${r.rating}</span><br><small style="color:#64748b">${r.reviews.toLocaleString()}</small></td>
+      <td>${r.price||'N/A'} ฿</td>
+      <td><span class="${groupCls}">${groupIcon} ${r.group}</span></td>
+      <td><span class="score-badge ${scoreCls}">${r.score}</span></td>
+      <td><a class="evidence-link" href="${r.url}" target="_blank">Maps ↗</a></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── HUMAN REVIEW QUEUE ──
+function buildReviewQueue(){
+  const flagged = RESTAURANTS.filter(r=>{
+    return r.hours==='N/A' || r.reviews<100 || r.price==='N/A' || r.priceMin===null;
+  }).sort((a,b)=>{
+    // sort by number of flags descending
+    const flags = r => (r.hours==='N/A'?1:0)+(r.reviews<100?1:0)+(r.priceMin===null?1:0);
+    return flags(b)-flags(a);
+  });
+
+  document.getElementById('queue-count').textContent = flagged.length;
+
+  const grid = document.createElement('div');
+  grid.className = 'flag-grid';
+
+  flagged.forEach(r=>{
+    const reasons = [];
+    if(r.hours==='N/A')      reasons.push('⏰ Opening hours not confirmed');
+    if(r.reviews<100)        reasons.push('📊 Review count < 100 (low confidence)');
+    if(r.priceMin===null)    reasons.push('💰 Price not found on Wongnai / Eatigo');
+
+    const areaCls = r.area==='Thonglor'?'tag-thonglor':'tag-asok';
+    const card = document.createElement('div');
+    card.className = 'flag-card';
+    card.innerHTML = `
+      <div class="flag-name">${r.name} <span class="flag-area ${areaCls}">${r.area}</span></div>
+      <div class="flag-reasons">${reasons.map(t=>`<span class="flag-tag">${t}</span>`).join('')}</div>
+      <div class="flag-note">⚠️ ควรยืนยันข้อมูลก่อนจอง — Verify details before booking</div>`;
+    grid.appendChild(card);
+  });
+
+  document.getElementById('queue-body').appendChild(grid);
+}
+
+function toggleQueue(){
+  const body   = document.getElementById('queue-body');
+  const toggle = document.getElementById('queue-toggle');
+  const open   = body.style.display==='none';
+  body.style.display   = open ? 'block' : 'none';
+  toggle.textContent   = open ? '▲ Hide' : '▼ Show';
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',()=>{
+  buildFoodDropdown();
+  applyFilters();
+  renderScenarioCards('team');
+  buildReviewQueue();
+
+  // nav scroll highlight
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks  = document.querySelectorAll('nav a');
+  new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        navLinks.forEach(a=>a.classList.remove('active'));
+        const al=document.querySelector('nav a[href="#'+e.target.id+'"]');
+        if(al) al.classList.add('active');
+      }
+    });
+  },{threshold:0.3}).observe&&sections.forEach(s=>new IntersectionObserver(entries=>{
+    entries.forEach(e=>{ if(e.isIntersecting){ navLinks.forEach(a=>a.classList.remove('active')); const al=document.querySelector('nav a[href="#'+e.target.id+'"]'); if(al) al.classList.add('active'); }});
+  },{threshold:0.3}).observe(s));
+});
+</script>
+
+</body>
+</html>
