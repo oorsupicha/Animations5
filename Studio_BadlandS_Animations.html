@@ -155,7 +155,7 @@ const ACTIONS=["Aiming Idle","Attachment Menu","Blend Pose","Cover Peek","Death"
 const STANCES=["Stand","Crouch","Prone","Prone (Raised)","Swimming"];
 const BLENDS=["Full Body","Upper Body","Additive Layer"];
 const GLOSSARY=[["SMG_HSE","SMG","HSE -- custom in-game SMG","Custom"],["SMG_Bizon","SMG","PP-19 Bizon (Russian SMG)","Real"],["SMG_EVO","SMG","CZ Scorpion EVO","Real"],["SMG_Kris / SMG_Kriss","SMG","KRISS Vector","Real"],["SMG_ChangFeng","SMG","Chang Feng CF-05 (Chinese SMG)","Real"],["SMG_MicroUzi","SMG","Micro Uzi","Real"],["SMG_HB_02","SMG","Homebrew SMG #2 (improvised)","Homebrew"],["SNP_ARS","SNP","ARS -- custom in-game sniper","Custom"],["SNP_Archangel / SNP_Mosin_Archangel","SNP","Mosin-Nagant, Archangel stock","Real"],["SNP_Bullistic","SNP","Bullistic -- custom in-game sniper","Custom"],["SNP_LM7","SNP","LM7 -- custom in-game sniper","Custom"],["SNP_R13","SNP","R13 -- custom in-game sniper","Custom"],["HB_SNP","SNP","Homebrew sniper rifle","Homebrew"],["ASR_AK12","ASR","AK-12 (Russian assault rifle)","Real"],["ASR_AR_01","ASR","Generic AR-type rifle","Custom"],["ASR_ASh12","ASR","ASh-12.7 (Russian heavy AR)","Real"],["ASR_HB / ASR_HB_01","ASR","Homebrew assault rifle","Homebrew"],["ASR_MXZ5","ASR","MXZ5 -- custom in-game AR","Custom"],["ASR_SHRAM","ASR","SHRAM -- custom in-game AR","Custom"],["ASR_Springfield_M1903","ASR","Springfield M1903 bolt-action","Real"],["ASR_Tar30","ASR","Tavor TAR-21 / Tar-30 bullpup","Real"],["ASR_Win73","ASR","Winchester Model 1873 lever-action","Real"],["ASR_M4","ASR","M4 Carbine","Real"],["ASR_THOR / ASR_THOR5","ASR","THOR -- custom in-game AR","Custom"],["ASR_WDX","ASR","WDX -- custom in-game AR","Custom"],["SHG_Browning_Auto5","SHG","Browning Auto-5 shotgun","Real"],["SHG_Colt_1878","SHG","Colt Model 1878 shotgun","Real"],["SHG_M1216","SHG","M1216 rotating-magazine shotgun","Real"],["SHG_Saiga","SHG","Saiga-12 semi-auto shotgun","Real"],["SHG_SP12","SHG","SPAS-12 shotgun","Real"],["SHG_Win_M1897","SHG","Winchester Model 1897 shotgun","Real"],["SHG_SawedOff","SHG","Sawed-off double-barrel shotgun","Real"],["HG_9mm","HG","9mm pistol (generic)","Custom"],["HG_45c","HG",".45 ACP pistol","Custom"],["HG_AP50","HG","AP50 -- custom in-game pistol","Custom"],["HG_FN_1903","HG","FN Model 1903 pistol","Real"],["HG_Kuger","HG","Luger P08 pistol","Real"],["HG_MicroUzi","HG","Micro Uzi (pistol config)","Real"],["HG_RV50c","HG","Revolver .50 calibre","Custom"],["HB_RV50c","HG","Homebrew revolver .50 calibre","Homebrew"],["HG_Revo","HG","Revolver (generic)","Custom"],["HG_SWM3","HG","SWM3 -- custom in-game pistol","Custom"],["HG_Auto","HG","Full-auto pistol","Custom"],["LMG_HMG / LMG_HMG_01","LMG","Heavy machine gun","Custom"],["LMG_NG100","LMG","NG100 -- custom in-game LMG","Custom"],["MEL_BaseballBat","MEL","Baseball bat","Real"],["MEL_FireAxe","MEL","Fire axe","Real"],["MEL_Flashlight","MEL","Flashlight (blunt)","Real"],["MEL_Hands","MEL","Bare hands / fists","Real"],["MEL_Knife","MEL","Knife","Real"],["MEL_TacticalKnife","MEL","Tactical knife","Real"],["MEL_Mace","MEL","Mace","Real"],["MEL_Machete_01","MEL","Machete","Real"],["MEL_PickAxe","MEL","Pickaxe","Real"],["MEL_Torch","MEL","Torch","Real"],["MEL_Wrench","MEL","Wrench","Real"],["MEL_Blade","MEL","Generic bladed weapon (shared set)","Custom"],["MEL_Blunt","MEL","Generic blunt weapon (shared set)","Custom"],["SUP_RPG / SUP_RPG7","SUP","RPG-7 rocket launcher","Real"],["SUP_AT4","SUP","AT4 disposable anti-tank launcher","Real"],["SUP_GLX","SUP","GLX grenade launcher","Custom"],["SUP_Eliminator","SUP","Eliminator -- custom support weapon","Custom"],["EXP_Grenade_HE","EXP","HE fragmentation grenade","Real"],["EXP_M26","EXP","M26 fragmentation grenade","Real"],["EXP_C4 / EXP_C4_Charge","EXP","C4 plastic explosive","Real"],["EXP_Claymore","EXP","M18A1 Claymore directional mine","Real"],["EXP_AP_Mine","EXP","Anti-personnel landmine","Real"],["EXP_AT_Mine","EXP","Anti-tank landmine","Real"],["EXP_Mine / EXP_Mine2","EXP","Generic landmine variants","Custom"],["EXP_Slam","EXP","SLAM selectable attack munition","Real"],["EXP_FlashEMP","EXP","Flash / EMP grenade","Real"],["EXP_SmokeFrag","EXP","Smoke / frag combination grenade","Real"],["EXP_Distraction","EXP","Distraction noise decoy","Custom"],["EXP_Flare","EXP","Signal / illumination flare","Real"],["HB_ASR01 / HB_ASR02","HB","Homebrew assault rifle (v1 & v2)","Homebrew"],["HB_AR_02","HB","Homebrew AR variant #2","Homebrew"],["HB_SMG02 / SMG_HB_02","HB","Homebrew submachine gun","Homebrew"],["HB_SNP / HB_SNP01","HB","Homebrew sniper rifle","Homebrew"],["HB_Shotgun","HB","Homebrew shotgun","Homebrew"],["HB_Revo / HB_RV50c","HB","Homebrew revolver","Homebrew"],["HB_Pistol","HB","Homebrew pistol","Homebrew"],["PDW_HB2","HB","Homebrew personal defence weapon","Homebrew"],["TLS_Chainsaw","TLS","Chainsaw -- cutting tool / heavy melee","Custom"],["TLS_BreachCharge","TLS","Breaching charge -- door demolition","Custom"],["TLS_CarPicklock","TLS","Car picklock -- vehicle entry tool","Custom"],["TLS_DoorHackTool","TLS","Door hack tool -- electronic bypass","Custom"],["TLS_EmpCharge","TLS","EMP charge -- electronics disruption","Custom"],["TLS_LureDevice","TLS","Lure device -- zombie distraction","Custom"],["TLS_Mine","TLS","Placeable mine (tool slot)","Custom"],["TLS_Blowtorch","TLS","Blowtorch -- cutting / repair tool","Custom"],["Binoculars","Binoculars","Binoculars -- observation optics","Custom"],["Medkit","Medkit","Medkit -- healing item","Custom"],["Deployable","Deployable","Deployable placeable equipment","Custom"],["Stim","Consumable","Stim injector -- consumable buff","Custom"]];
-const META={"generated":"2026-08-13 11:26:58","filelist":"Anim_filelist.txt","csv":"Animation List.csv","total":3211,"used":1183,"unused":2028,"configs":138,"slots":91,"orphans":52,"videos":2723,"withVideo":2723,"noMatchVideo":0};
+const META={"generated":"2026-08-13 11:54:07","filelist":"Anim_filelist.txt","csv":"Animation List.csv","total":3211,"used":1183,"unused":2028,"configs":138,"slots":91,"orphans":52,"videos":2723,"withVideo":2723,"noMatchVideo":0};
 
 /* ---- field indices into an ANIMS row ---- */
 var F_FILE=0,F_CAT=1,F_ACT=2,F_STANCE=3,F_PERSP=4,F_BLEND=5,F_CODE=6,F_USED=7,F_SLOTS=8,F_CFGS=9,F_VDO=10;
@@ -175,16 +175,153 @@ var SLOT_USERS={};      /* slot index -> count of configs binding it */
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function attr(s){return esc(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
 
+/* ================= WHERE THE CLIPS COME FROM =========================
+   The VDO folder is never uploaded - it is ~700 MB of mp4 that would
+   swamp the repo.  So:
+
+     opened from disk (file:// or localhost)
+         clips load from the VDO folder sitting next to this file.
+         Nothing to set up.
+
+     opened from a web host (github.io)
+         the viewer links their own local VDO folder once, with the
+         browser's folder picker.  Chrome / Edge remember the choice,
+         so it is a one-time click per machine.  Nothing is uploaded -
+         the file is read straight off the viewer's disk.
+==================================================================== */
+var VDO_ISLOCAL=(location.protocol==='file:'||location.hostname==='localhost'||location.hostname==='127.0.0.1');
+var VDO_CANPICK=(typeof window.showDirectoryPicker==='function');
+var VDO_DIRH=null;       /* FileSystemDirectoryHandle once linked   */
+var VDO_DIRNAME='';      /* its display name, for the status chip   */
+var VDO_BLOB=null;       /* object URL currently held by the player */
+
+/* --- remember the folder between visits (IndexedDB holds handles) --- */
+function vdoDB(){
+  return new Promise(function(res,rej){
+    var r=indexedDB.open('animlist_vdo',1);
+    r.onupgradeneeded=function(){r.result.createObjectStore('h');};
+    r.onsuccess=function(){res(r.result);};
+    r.onerror=function(){rej(r.error);};
+  });
+}
+function vdoRemember(h){
+  return vdoDB().then(function(db){
+    return new Promise(function(res,rej){
+      var t=db.transaction('h','readwrite');
+      t.objectStore('h').put(h,'dir');
+      t.oncomplete=function(){res();};
+      t.onerror=function(){rej(t.error);};
+    });
+  }).catch(function(){});
+}
+function vdoRecall(){
+  return vdoDB().then(function(db){
+    return new Promise(function(res){
+      var q=db.transaction('h','readonly').objectStore('h').get('dir');
+      q.onsuccess=function(){res(q.result||null);};
+      q.onerror=function(){res(null);};
+    });
+  }).catch(function(){return null;});
+}
+function vdoForget(){
+  VDO_DIRH=null;VDO_DIRNAME='';
+  vdoDB().then(function(db){
+    var t=db.transaction('h','readwrite');t.objectStore('h').delete('dir');
+  }).catch(function(){});
+  vdoState();
+}
+
+/* --- status chip in the top bar --- */
+function vdoState(){
+  var box=el('vdo-state');if(!box)return;
+  if(VDO_ISLOCAL){
+    box.innerHTML='<span id="vdo-dot" class="ok"></span>clips: '+esc(VDODIR)+'\\ next to this file';
+    return;
+  }
+  if(VDO_DIRH){
+    box.innerHTML='<span id="vdo-dot" class="ok"></span>clips: '+esc(VDO_DIRNAME)+
+      ' <button class="linkbtn lit" onclick="vdoPick()">Change</button>';
+  }else{
+    box.innerHTML='<span id="vdo-dot"></span>clips not linked '+
+      '<button class="linkbtn" onclick="vdoPick()">Link VDO folder</button>';
+  }
+}
+
+/* --- let the viewer choose their VDO folder --- */
+function vdoPick(){
+  if(!VDO_CANPICK){
+    alert('This browser cannot open a local folder.\n\n'+
+          'Use Chrome or Edge, or download the catalog and its VDO folder '+
+          'and open the file from your own disk.');
+    return;
+  }
+  window.showDirectoryPicker({id:'animlist-vdo',mode:'read'}).then(function(h){
+    VDO_DIRH=h;VDO_DIRNAME=h.name;
+    vdoState();
+    return vdoRemember(h);
+  }).then(function(){
+    if(panel==='__video__')rerender();
+  }).catch(function(){});
+}
+
+/* --- resolve one clip filename to something <video> can play --- */
+function vdoURL(fn){
+  if(VDO_ISLOCAL)return Promise.resolve(VDODIR+'/'+encodeURIComponent(fn));
+  if(!VDO_DIRH)return Promise.resolve(null);
+  return VDO_DIRH.getFileHandle(fn).then(function(fh){
+    return fh.getFile();
+  }).then(function(f){
+    VDO_BLOB=URL.createObjectURL(f);
+    return VDO_BLOB;
+  }).catch(function(){return null;});
+}
+
+/* --- restore a previously linked folder on load --- */
+(function(){
+  if(VDO_ISLOCAL||!VDO_CANPICK)return;
+  vdoRecall().then(function(h){
+    if(!h)return null;
+    return h.queryPermission({mode:'read'}).then(function(st){
+      if(st==='granted'){VDO_DIRH=h;VDO_DIRNAME=h.name;vdoState();
+        if(panel==='__video__')rerender();}
+      return null;
+    }).catch(function(){return null;});
+  });
+})();
+
 function openVid(file,fn,meta){
   var v=el('vplayer');
-  v.src=VDODIR+'/'+encodeURIComponent(fn);
   el('vtitle').textContent=file;
   el('vmeta').innerHTML=(meta||'')+' <span class="muted">&mdash; '+esc(VDODIR)+'/'+esc(fn)+'</span>';
+  el('vhint').classList.remove('on');
+  v.classList.remove('hide');
   el('vmask').classList.add('on');
-  v.play().catch(function(){});
+  vdoURL(fn).then(function(u){
+    if(u){v.src=u;v.play().catch(function(){});return;}
+    v.classList.add('hide');
+    var hint=el('vhint');
+    if(!VDO_DIRH){
+      hint.innerHTML='The preview clips are not part of this web page - they live in the '+
+        '<b>'+esc(VDODIR)+'\\</b> folder on the studio drive.<br><br>'+
+        'Link that folder once and every play button on this page works, '+
+        'reading straight off your own disk. Nothing is uploaded.<br><br>'+
+        (VDO_CANPICK
+          ? '<button class="linkbtn" onclick="vdoPick()">Link VDO folder</button>'
+          : 'Your browser cannot open a local folder - use Chrome or Edge.');
+    }else{
+      hint.innerHTML='<b>'+esc(fn)+'</b> was not found in the linked folder '+
+        '<b>'+esc(VDO_DIRNAME)+'</b>.<br><br>'+
+        'Either the clip has not been rendered yet, or you linked the wrong folder. '+
+        '<button class="linkbtn" onclick="vdoPick()">Pick a different folder</button>';
+    }
+    hint.classList.add('on');
+  });
 }
 function closeVid(){
   var v=el('vplayer');v.pause();v.removeAttribute('src');v.load();
+  v.classList.remove('hide');
+  el('vhint').classList.remove('on');
+  if(VDO_BLOB){URL.revokeObjectURL(VDO_BLOB);VDO_BLOB=null;}
   el('vmask').classList.remove('on');
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeVid();});
@@ -541,7 +678,24 @@ function stanceColor(s){return s==='Stand'?'#7dde92':s==='Crouch'?'#f0c060':s===
 /* ======================= PREVIEWS ======================= */
 function renderVideo(c){
   var withV=ANIMS.filter(function(a){return a[F_VDO];});
-  var h='<div class="note">Clips live in the <b>'+esc(VDODIR)+'\\</b> folder next to this file. '+
+  var h='';
+  if(!VDO_ISLOCAL){
+    h+='<div class="note" style="border-left-color:'+(VDO_DIRH?'#2d7050':'#7a5a20')+'">'+
+       (VDO_DIRH
+         ? 'Playing clips from your local folder <b>'+esc(VDO_DIRNAME)+'</b>. '+
+           'Nothing is uploaded &mdash; the browser reads each file off your own disk. '+
+           '<button class="linkbtn lit" onclick="vdoPick()">Change folder</button> '+
+           '<button class="linkbtn" onclick="vdoForget()">Unlink</button>'
+         : 'The clips are <b>not part of this web page</b> &mdash; they are ~700 MB of mp4 that stays '+
+           'on the studio drive. To watch them here, link your local <b>'+esc(VDODIR)+'\\</b> folder once; '+
+           'the browser remembers it and every play button below starts working. '+
+           (VDO_CANPICK
+             ? '<button class="linkbtn" onclick="vdoPick()">Link VDO folder</button>'
+             : '<b style="color:#e0a060">This browser cannot open a local folder &mdash; use Chrome or Edge.</b>'))+
+       '</div>';
+  }
+  h+='<div class="note">Clips live in the <b>'+esc(VDODIR)+'\\</b> folder next to '+
+        (VDO_ISLOCAL?'this file':'the catalog on the studio drive')+'. '+
         'A clip attaches to an animation when its filename minus the extension <b>exactly matches</b> '+
         'the .anm basename &mdash; e.g. <span class="mono">'+esc(VDODIR)+'\\Slide_stand_F.mp4</span> '+
         'attaches to <span class="mono">Slide_stand_F</span>. Matching ignores case.</div>';
@@ -601,6 +755,7 @@ function renderGlossary(c){
   c.innerHTML=h;
 }
 
+vdoState();
 showPanel('__overview__');
 </script>
 </body>
